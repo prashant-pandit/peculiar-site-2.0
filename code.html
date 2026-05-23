@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Peculiar Beats | Engineering the Night</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#eeddee",
+                        "on-secondary": "#303030",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#75009e",
+                        "surface-dim": "#19101c",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "error-container": "#93000a",
+                        "surface-tint": "#ecb1ff",
+                        "tertiary": "#ffb960",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-surface-variant": "#d5c0d7",
+                        "on-primary-fixed": "#320046",
+                        "on-tertiary-fixed": "#2b1700",
+                        "surface-bright": "#403643",
+                        "on-secondary-fixed": "#1b1b1c",
+                        "surface-container": "#261c28",
+                        "on-surface": "#eeddee",
+                        "primary-fixed": "#f9d8ff",
+                        "on-tertiary-container": "#ffffff",
+                        "on-tertiary": "#472a00",
+                        "background": "#19101c",
+                        "inverse-surface": "#eeddee",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "tertiary-container": "#a76900",
+                        "on-primary-container": "#ffffff",
+                        "secondary": "#c8c6c5",
+                        "primary-container": "#bf00ff",
+                        "on-primary": "#520070",
+                        "surface-container-low": "#221824",
+                        "surface": "#19101c",
+                        "inverse-on-surface": "#372d3a",
+                        "inverse-primary": "#9900ce",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#ecb1ff",
+                        "outline-variant": "#514254",
+                        "on-secondary-container": "#b7b5b4",
+                        "outline": "#9d8ba0",
+                        "primary": "#ecb1ff",
+                        "on-secondary-fixed-variant": "#474746",
+                        "error": "#ffb4ab",
+                        "surface-container-lowest": "#140b16",
+                        "surface-variant": "#3c313e",
+                        "secondary-fixed": "#e5e2e1",
+                        "tertiary-fixed-dim": "#ffb960",
+                        "secondary-container": "#474746",
+                        "surface-container-highest": "#3c313e",
+                        "surface-container-high": "#312733"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "80px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Syne"],
+                        "display-xl": ["Syne"],
+                        "headline-lg": ["Syne"],
+                        "label-caps": ["Inter"],
+                        "headline-md": ["Syne"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Syne"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "display-xl": ["96px", { "lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "headline-lg": ["48px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        
+        .bento-card {
+            background-color: #121212;
+            border: 1px solid #1E1E1E;
+            transition: border-color 0.3s ease;
+        }
+        
+        .bento-card:hover {
+            border-color: theme('colors.primary-container');
+        }
+
+        .btn-primary {
+            background-color: theme('colors.primary-container');
+            color: #000000;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 0 15px theme('colors.primary-container');
+        }
+
+        .btn-outline {
+            border: 1px solid theme('colors.primary-container');
+            color: theme('colors.primary-container');
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            background-color: theme('colors.primary-container');
+            color: #000000;
+            box-shadow: 0 0 15px theme('colors.primary-container');
+        }
+        
+        /* Hide scrollbar for horizontal scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col relative overflow-x-hidden selection:bg-primary-container selection:text-black">
+<!-- TopNavBar Component -->
+<nav class="bg-background/80 backdrop-blur-xl border-b border-outline-variant/20 fixed top-0 w-full z-50">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-6 w-full max-w-container-max mx-auto">
+<div class="font-display-lg text-headline-md md:text-display-lg tracking-tighter text-on-surface">
+                Peculiar Beats
+            </div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-caps text-label-caps scale-95 active:scale-90 transition-transform" href="#">Experience</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-caps text-label-caps transition-all duration-300 scale-95 active:scale-90 transition-transform" href="#media">Media</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-caps text-label-caps transition-all duration-300 scale-95 active:scale-90 transition-transform" href="#releases">Releases</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-caps text-label-caps transition-all duration-300 scale-95 active:scale-90 transition-transform" href="#booking">Bookings</a>
+</div>
+<a class="hidden md:inline-flex btn-primary px-6 py-3 rounded font-label-caps text-label-caps tracking-widest uppercase items-center gap-2" href="#booking">
+                Book Now
+            </a>
+<!-- Mobile Menu Toggle (Simplified) -->
+<button class="md:hidden text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</nav>
+<main class="flex-grow pt-[120px]">
+<!-- Hero Section -->
+<section class="min-h-[819px] flex items-center justify-center px-margin-mobile md:px-margin-desktop relative mb-32 w-full overflow-hidden">
+<!-- Full bleed background image -->
+<div class="absolute inset-0 w-full h-full -z-20">
+<img alt="DJ performing at a club" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqKzu1AparutUahKdpYJLTQ4oh3_erCH8JN2NViVp-3DGP3vv8dg_4h9f9qK9AQEkoG2tO6m69Eg0OG0jW4G21KwCtHY4D4sw3q4lUBmce67dwHBmtBlpWWFaJQLgA_CXNeZzXaKq443NmMJGYb3y16_Er9buhu55779O3IEgLhGifDAFiNkBVSGXRy_lUTN45dDjG3SCuyodo5AtzPqa2Ow7znr_HzWIZIJUCSKWFWiO-pYRjEuQE1PM-ZoPfvN-_nA9vF1YgKJEo"/>
+</div>
+<!-- Dark overlay -->
+<div class="absolute inset-0 bg-background/80 -z-10"></div>
+<div class="max-w-4xl text-center relative z-10 flex flex-col items-center">
+<h2 class="font-display-xl text-display-xl text-on-surface mb-8 leading-tight">
+                    Peculiar Beats — Setting the Vibe, Engineering the Night.
+                </h2>
+<div class="flex flex-col sm:flex-row justify-center gap-6 mt-12">
+<a class="btn-primary px-8 py-4 rounded font-label-caps text-label-caps tracking-widest uppercase text-center inline-flex items-center justify-center gap-2" href="#booking">
+                        Book for Event
+                    </a>
+<a class="btn-outline px-8 py-4 rounded font-label-caps text-label-caps tracking-widest uppercase text-center inline-flex items-center justify-center gap-2" href="#releases">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                        Listen to Mixes
+                    </a>
+</div>
+</div>
+</section><!-- Performance Statistics Section -->
+<section class="bg-surface-container-low border-y border-outline-variant/20 w-full py-16 mb-32">
+<div class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+<!-- Stat 1 -->
+<div class="flex flex-col items-center gap-2">
+<span class="font-display-lg text-primary-container text-4xl md:text-5xl lg:text-64px">500+</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Events Performed</span>
+</div>
+<!-- Stat 2 -->
+<div class="flex flex-col items-center gap-2">
+<span class="font-display-lg text-primary-container text-4xl md:text-5xl lg:text-64px">12+</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Cities Toured</span>
+</div>
+<!-- Stat 3 -->
+<div class="flex flex-col items-center gap-2">
+<span class="font-display-lg text-primary-container text-4xl md:text-5xl lg:text-64px">45+</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Unique Venues</span>
+</div>
+<!-- Stat 4 -->
+<div class="flex flex-col items-center gap-2">
+<span class="font-display-lg text-primary-container text-4xl md:text-5xl lg:text-64px">8+</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Genre Versatility</span>
+</div>
+</div>
+</div>
+</section><section class="py-24 bg-background overflow-hidden w-full">
+<div class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto mb-12 text-center">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.2em] opacity-60">Industry Partners</h2>
+</div>
+<div class="relative flex overflow-x-hidden group">
+<div class="py-12 animate-marquee flex whitespace-nowrap items-center">
+<div class="flex items-center gap-16 md:gap-32 mx-8 md:mx-16">
+<img alt="Partner Logos" class="h-16 md:h-24 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 cursor-pointer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsI07zLRWI-pBUH3E4Udyj-D5TcEOAoYjphuni_qZw6U3Ic8qN4I52pmNxBz6TcBHvXf8T4E9XOXYgj-A3l5JexDFOd4B08ZRTxZ-xNiMupkKCXFsolp-SHpWEjReDuqF3p5HN4DAAjnGRFKTGKW2q23tlaxI2o_Q6Mr0vK_IHwTCTkyoBEigxoiKPtbdfWbFZvx4Dcz0roPDLnvhIckSoHszqho60pU6UBAQh2ESCtrGVBxFSqxksNhY5kU7iR1Hx-KdR5o3q7WaG"/>
+</div>
+<div class="flex items-center gap-16 md:gap-32 mx-8 md:mx-16">
+<img alt="Partner Logos" class="h-16 md:h-24 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 cursor-pointer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsI07zLRWI-pBUH3E4Udyj-D5TcEOAoYjphuni_qZw6U3Ic8qN4I52pmNxBz6TcBHvXf8T4E9XOXYgj-A3l5JexDFOd4B08ZRTxZ-xNiMupkKCXFsolp-SHpWEjReDuqF3p5HN4DAAjnGRFKTGKW2q23tlaxI2o_Q6Mr0vK_IHwTCTkyoBEigxoiKPtbdfWbFZvx4Dcz0roPDLnvhIckSoHszqho60pU6UBAQh2ESCtrGVBxFSqxksNhY5kU7iR1Hx-KdR5o3q7WaG"/>
+</div>
+<div class="flex items-center gap-16 md:gap-32 mx-8 md:mx-16">
+<img alt="Partner Logos" class="h-16 md:h-24 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 cursor-pointer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsI07zLRWI-pBUH3E4Udyj-D5TcEOAoYjphuni_qZw6U3Ic8qN4I52pmNxBz6TcBHvXf8T4E9XOXYgj-A3l5JexDFOd4B08ZRTxZ-xNiMupkKCXFsolp-SHpWEjReDuqF3p5HN4DAAjnGRFKTGKW2q23tlaxI2o_Q6Mr0vK_IHwTCTkyoBEigxoiKPtbdfWbFZvx4Dcz0roPDLnvhIckSoHszqho60pU6UBAQh2ESCtrGVBxFSqxksNhY5kU7iR1Hx-KdR5o3q7WaG"/>
+</div>
+</div>
+<div class="absolute top-0 py-12 animate-marquee2 flex whitespace-nowrap items-center">
+<div class="flex items-center gap-16 md:gap-32 mx-8 md:mx-16">
+<img alt="Partner Logos" class="h-16 md:h-24 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 cursor-pointer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsI07zLRWI-pBUH3E4Udyj-D5TcEOAoYjphuni_qZw6U3Ic8qN4I52pmNxBz6TcBHvXf8T4E9XOXYgj-A3l5JexDFOd4B08ZRTxZ-xNiMupkKCXFsolp-SHpWEjReDuqF3p5HN4DAAjnGRFKTGKW2q23tlaxI2o_Q6Mr0vK_IHwTCTkyoBEigxoiKPtbdfWbFZvx4Dcz0roPDLnvhIckSoHszqho60pU6UBAQh2ESCtrGVBxFSqxksNhY5kU7iR1Hx-KdR5o3q7WaG"/>
+</div>
+<div class="flex items-center gap-16 md:gap-32 mx-8 md:mx-16">
+<img alt="Partner Logos" class="h-16 md:h-24 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 cursor-pointer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsI07zLRWI-pBUH3E4Udyj-D5TcEOAoYjphuni_qZw6U3Ic8qN4I52pmNxBz6TcBHvXf8T4E9XOXYgj-A3l5JexDFOd4B08ZRTxZ-xNiMupkKCXFsolp-SHpWEjReDuqF3p5HN4DAAjnGRFKTGKW2q23tlaxI2o_Q6Mr0vK_IHwTCTkyoBEigxoiKPtbdfWbFZvx4Dcz0roPDLnvhIckSoHszqho60pU6UBAQh2ESCtrGVBxFSqxksNhY5kU7iR1Hx-KdR5o3q7WaG"/>
+</div>
+<div class="flex items-center gap-16 md:gap-32 mx-8 md:mx-16">
+<img alt="Partner Logos" class="h-16 md:h-24 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 cursor-pointer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsI07zLRWI-pBUH3E4Udyj-D5TcEOAoYjphuni_qZw6U3Ic8qN4I52pmNxBz6TcBHvXf8T4E9XOXYgj-A3l5JexDFOd4B08ZRTxZ-xNiMupkKCXFsolp-SHpWEjReDuqF3p5HN4DAAjnGRFKTGKW2q23tlaxI2o_Q6Mr0vK_IHwTCTkyoBEigxoiKPtbdfWbFZvx4Dcz0roPDLnvhIckSoHszqho60pU6UBAQh2ESCtrGVBxFSqxksNhY5kU7iR1Hx-KdR5o3q7WaG"/>
+</div>
+</div>
+</div>
+<style>
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
+    @keyframes marquee2 {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(0%); }
+    }
+    .animate-marquee {
+      animation: marquee 40s linear infinite;
+    }
+    .animate-marquee2 {
+      animation: marquee2 40s linear infinite;
+    }
+    .group:hover .animate-marquee, .group:hover .animate-marquee2 {
+      animation-play-state: paused;
+    }
+  </style>
+</section>
+<!-- Intro Section -->
+<section class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto mb-32">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<div class="md:col-span-5">
+<div class="w-full aspect-[4/5] bg-surface-container rounded-lg overflow-hidden relative group">
+<img alt="DJ performing at a high-end club" class="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-700" data-alt="A striking portrait of a professional DJ in a high-end, shadowy club environment. The lighting is cinematic, featuring stark contrasts with deep blacks and sharp, vivid neon purple accents outlining the DJ equipment. The aesthetic is dark minimalism, sophisticated and modern, conveying a luxury electronic music experience. The mood is intense, focused, and nocturnal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmeZJpwKr20rvrmfBp7b494ZAxH0w6zPzEk6Z1rGuLEwKJTLa8KTewwmR2yfqJJgLkNBBOru7w3L1_3UR-e_cyFRGl8w4oMRNQINbMQgBMDc5uDSmb2nzO-YAHNn4VmGjSQP0oWYvjOpTo7o7mbjSTsOIvPx21UCoGnls368sQ7USiY-IIZM4KKxA_2B37e_fhwElGgkjwWGQ5HoslB6b6FU3XgQfYwJ07OUvo5iKYI5ZdDZMhz1hP-WhhK6zXSOzsEPFjquyljqHD"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+</div>
+</div>
+<div class="md:col-span-7 flex flex-col justify-center pl-0 md:pl-12 mt-8 md:mt-0">
+<div class="inline-flex items-center gap-2 mb-6">
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+<span class="font-label-caps text-label-caps text-primary uppercase tracking-widest">The Architect of Sound</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-8">
+                        Precision mixing for spaces that demand excellence.
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-6 max-w-2xl">
+                        Peculiar Beats transcends standard DJ performances, delivering curated auditory experiences tailored to the architecture of the moment. From underground techno sets in warehouse raves to sophisticated ambient layers for corporate galas and luxury weddings, the approach is always meticulous and adaptive.
+                    </p>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+                        Leveraging years of technical production background, every set is mixed with surgical precision, ensuring a seamless journey that dictates the energy of the room without overpowering it.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Curated Experiences (Bento Grid) -->
+<section class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto mb-32" id="experience">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-12">Curated Experiences</h2>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Bento Card 1 (Span 4) -->
+<div class="md:col-span-4 bento-card rounded-xl p-8 flex flex-col h-full">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined text-2xl">nightlife</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4">Club &amp; Nightlife</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow">
+                        High-energy electronic sets designed for peak-time dancefloors. Deep, driving rhythms spanning house to techno.
+                    </p>
+</div>
+<!-- Bento Card 2 (Span 4) -->
+<div class="md:col-span-4 bento-card rounded-xl p-8 flex flex-col h-full">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined text-2xl">corporate_fare</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4">Corporate Galas</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow">
+                        Sophisticated, low-profile soundscapes that encourage networking, transitioning smoothly to celebratory energy later in the evening.
+                    </p>
+</div>
+<!-- Bento Card 3 (Span 4) -->
+<div class="md:col-span-4 bento-card rounded-xl p-8 flex flex-col h-full">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined text-2xl">celebration</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4">Luxury Weddings</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow">
+                        Bespoke musical curation from cocktail hour to the final send-off, blending classic anthems with modern edits seamlessly.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Media Showcase (Masonry-ish) -->
+<section class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto mb-32" id="media">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-12">Visual Proof</h2>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Large Feature -->
+<div class="md:col-span-8 bento-card rounded-xl overflow-hidden aspect-video relative group">
+<img alt="Festival mainstage performance" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" data-alt="A wide, cinematic shot of a DJ performing on a massive festival stage at night. The crowd is a sea of silhouettes backlit by intense, sharp lasers in electric purple and deep black tones. The visual style is dark minimalism meets high-tech luxury, capturing the massive scale and energy of an elite electronic music event." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0xZ4KaAk_scAcdw4st9uhwMEvOUaslhsIK_ZgQlb3TSYhGVSZ105irWAqe-kT3eUAPTnxmI0PzDaUQ9hJLsg8JrADngUxCs0i2bT0MMJ1XZM9iQtucvEvbbdKsD3FSc4Gfro9PyzxH3GgzpinPc4OFgGTZtvr-aNDAM1CUE8w7UKAyeqeUYXQcNI0PHRXzRwQInlnHucf6SK0vbBZ18QSBVBD_yRMjcs_QsbzgqXh7R_a9MN9-Eq7xWjPIXVglFI-VL1Mdi5QvCkx"/>
+<div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+<button class="w-20 h-20 rounded-full bg-background/80 backdrop-blur border border-primary/50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<div class="absolute bottom-6 left-6">
+<span class="font-label-caps text-label-caps bg-black/80 px-3 py-1 rounded text-primary border border-primary/30 uppercase">Live Set</span>
+<h3 class="font-headline-md text-headline-md text-on-surface mt-2">Neon Nights Festival 2023</h3>
+</div>
+</div>
+<!-- Stacked smaller items -->
+<div class="md:col-span-4 flex flex-col gap-gutter">
+<div class="bento-card rounded-xl overflow-hidden aspect-[4/3] relative group">
+<img alt="Intimate club set" class="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" data-alt="A close-up, high-contrast shot of DJ equipment—CDJs and a mixer—in a dark, intimate club setting. The only illumination comes from the glowing buttons on the gear and a subtle sweep of neon purple light. The aesthetic is incredibly sharp, minimal, and premium, focusing on the technical precision of the performance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDixebxd1ASF9II5LQMNkND8uhH57RSXUO1wWgnvShzgfW_y5YX8ef_FvpOy2kcUA-niSJ0CUtND0tXW0BWe5Uv0iToNGMjo6VCY_XRtgFOKNmgIWW3NlhZPcszfFWhwDq4s8WmYknd0iAqfqAqDn-_5Q7kAqF-Eu4PIcLXI5h7AGBInzmQ5nsMNEFk13yx2bj-rrZGnv1jyUVT72UqzYfThiBDRz0DUFUxsBufSqL_H2r5EWwTrlqAa5mmpWLKPeb1AML9cZUBNpam"/>
+</div>
+<div class="bento-card rounded-xl overflow-hidden aspect-[4/3] relative group">
+<img alt="Luxury event setup" class="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" data-alt="A sleek, minimalist DJ booth setup at a luxury corporate gala. The environment is dark and architectural, with striking geometric shadows. A subtle electric purple uplight washes against a concrete texture wall behind the booth. The mood is sophisticated, exclusive, and strictly modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDplcP_AyhNJabbMRAMF5pgn01xbQQ5NCqK4y89PBbklhk9nj8QLVsrH7ftbQdHppzW4FTVSQONByrrCYl_2FbTyEgLCgiqHHaS-tO3vl3YY1IbNIB1KhOhRF68lglpsLru45VcCVoen-6UNQPXYEq0ON0UOrxs6X4WNPFDlWlfJyAgnuVJciPtClpvquUFWAExkSV_2R-QdEkLjlqptiblD3VYrpvR14iSYSpeQqq3WqhWmYiZ__KBCZR3h_RCCM40cTLbCOxNj4pR"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Music Releases (Horizontal Scroll) -->
+<section class="pl-margin-mobile md:pl-margin-desktop mb-32 overflow-hidden" id="releases">
+<div class="flex items-end justify-between pr-margin-mobile md:pr-margin-desktop mb-12">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Sonic Architecture</h2>
+<div class="flex gap-4">
+<button class="w-10 h-10 rounded-full border border-outline flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="w-10 h-10 rounded-full border border-outline flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-colors">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="flex gap-6 overflow-x-auto no-scrollbar pb-8 pr-margin-mobile md:pr-margin-desktop snap-x">
+<!-- Track 1 -->
+<div class="min-w-[280px] md:min-w-[320px] snap-start group cursor-pointer">
+<div class="w-full aspect-square bg-surface-container rounded-xl overflow-hidden relative mb-4">
+<img alt="Abstract album art" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" data-alt="Minimalist abstract album artwork featuring deep black space intersecting with sharp, geometric shards of electric purple and pristine white. The design is stark, Swiss-inspired modernism with no extraneous details, looking like a high-end techno vinyl sleeve." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAYvgrs2o6X7jkiu8b7-rpbWC2D5ppYH6xw8m-9d7IcC63-vARatJX8pfFBpoOuf9h_Ww3bAu2ctJfd6OvV4QfMFkkhWd0c2RdU52Gvypny7MkvQokpwELPKFzan0m_Z1aneA3fDcxUPgue1SJs3EfKYgg4MEfE5uEnRXW6iZmHGaVxe661pMigwbwI2qV4FLaazKYzuUlxK90jw_MmkkQeXhK6ncjkNF0JRLmFJPRloCkdskmSm88ZH2ssehXuwjkW7eeWBX_jkAU"/>
+<div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<div class="w-16 h-16 rounded-full bg-primary-container text-black flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 mb-1">
+<span class="font-label-caps text-label-caps text-primary border border-primary/30 px-2 py-0.5 rounded uppercase">EP</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">2023</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">Void Dynamics</h3>
+</div>
+<!-- Track 2 -->
+<div class="min-w-[280px] md:min-w-[320px] snap-start group cursor-pointer">
+<div class="w-full aspect-square bg-surface-container rounded-xl overflow-hidden relative mb-4">
+<img alt="Abstract album art" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300 grayscale" data-alt="Abstract album artwork showing a macro shot of architectural concrete lines disappearing into pitch-black shadows. A single, razor-thin line of neon purple cuts horizontally across the composition. The style is stark dark minimalism, evoking industrial techno sounds." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd9JNbncPovHvg0Wg54ySHBOILyl4hnEBn0vYUydUyOLLhq35PFJIV9TdfWZ-oAxrFMxBQVFahNBmValcTf58nfcfDXVDKwl3bBSnsBTD9VV5nWYStfCL9DU-1ZEYG5y3sL1Vuq-_sdnrmr073kkHVRa3ireSGFg5kkZwChGc1egcJIfTAgtjWlA8jtZz3slj6lyEDVKx93QZiRlcpJYpj-svGHYkBkaL9p1MlrISS2VystZwL3xfbm7ujk88BQlecNdF5dOGabP8I"/>
+<div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<div class="w-16 h-16 rounded-full bg-primary-container text-black flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 mb-1">
+<span class="font-label-caps text-label-caps text-primary border border-primary/30 px-2 py-0.5 rounded uppercase">Single</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">2023</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">Concrete Pulse</h3>
+</div>
+<!-- Track 3 -->
+<div class="min-w-[280px] md:min-w-[320px] snap-start group cursor-pointer">
+<div class="w-full aspect-square bg-surface-container rounded-xl overflow-hidden relative mb-4">
+<img alt="Abstract album art" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" data-alt="Minimalist abstract album art featuring a pure black background with a subtle, glowing gradient of deep indigo to electric purple near the bottom edge, resembling a distant horizon line. The aesthetic is clean, luxurious, and deeply atmospheric." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1bNmBtUS1hSf9IE0ODQzvZhxEbWELT1iNU2EcpBuCl81h-GNW2rrB3rH41OOpSTHREDSDvbSnVxVQdNRt04F8A9Hw6G3t-J8WcIHtr8AKFumKVb9mPsWLFsHgJSMPKEYFJMNMc6wWVMT4pTTR-ea2BhiVHijM9cncPbzYhwSvagnTYBGr0UH3R8QXABBmp7hi016Lld3nx0siedYH3p21JpOpA5-YcB1dmt5h8Hrohjv5L9YKiBScAdDqsUC2_D7ZeAsFRxztdtzM"/>
+<div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<div class="w-16 h-16 rounded-full bg-primary-container text-black flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 mb-1">
+<span class="font-label-caps text-label-caps text-primary border border-primary/30 px-2 py-0.5 rounded uppercase">Mix</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">2022</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">Midnight Architecture</h3>
+</div>
+</div>
+</section>
+<!-- Booking Section -->
+<section class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto mb-32" id="booking">
+<div class="bento-card rounded-2xl p-8 md:p-16 max-w-4xl mx-auto relative overflow-hidden">
+<!-- Decorative element -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-container/5 rounded-full blur-[60px] pointer-events-none"></div>
+<div class="text-center mb-12 relative z-10">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-4">Initiate Protocol</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Inquire about availability for your next event.</p>
+</div>
+<form class="space-y-6 relative z-10">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest block">Name / Organization</label>
+<input class="w-full bg-black border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors outline-none font-body-md text-body-md" placeholder="Enter details" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest block">Event Date</label>
+<input class="w-full bg-black border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors outline-none font-body-md text-body-md [color-scheme:dark]" type="date"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest block">Event Type</label>
+<select class="w-full bg-black border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors outline-none font-body-md text-body-md appearance-none cursor-pointer">
+<option>Club / Festival</option>
+<option>Corporate Event</option>
+<option>Luxury Wedding</option>
+<option>Private Venue</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest block">Project Details</label>
+<textarea class="w-full bg-black border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors outline-none font-body-md text-body-md resize-none" placeholder="Describe the vibe, venue, and technical requirements..." rows="4"></textarea>
+</div>
+<div class="pt-4 flex justify-center">
+<button class="btn-primary px-12 py-4 rounded font-label-caps text-label-caps tracking-widest uppercase text-center w-full md:w-auto" type="button">
+                            Submit Inquiry
+                        </button>
+</div>
+</form>
+</div>
+</section>
+</main>
+<!-- Footer Component -->
+<footer class="bg-surface-container-lowest w-full py-12 border-t border-outline-variant/10">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto gap-8">
+<div class="font-headline-md text-headline-md text-on-surface">
+                Peculiar Beats
+            </div>
+<div class="flex gap-6">
+<a class="text-on-surface-variant hover:text-primary transition-colors underline-offset-4 hover:underline opacity-80 hover:opacity-100 font-body-md text-body-md" href="#">Instagram</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors underline-offset-4 hover:underline opacity-80 hover:opacity-100 font-body-md text-body-md" href="#">YouTube</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors underline-offset-4 hover:underline opacity-80 hover:opacity-100 font-body-md text-body-md" href="#">SoundCloud</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors underline-offset-4 hover:underline opacity-80 hover:opacity-100 font-body-md text-body-md" href="#">Mixcloud</a>
+</div>
+<div class="font-body-md text-body-md text-on-surface-variant opacity-80">
+                © 2024 Peculiar Beats. Engineering the Night.
+            </div>
+</div>
+</footer>
+</body></html>
