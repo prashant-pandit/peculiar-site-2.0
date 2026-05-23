@@ -669,39 +669,244 @@ function Releases() {
 }
 
 function Booking() {
+  const [formData, setFormData] = useState({
+    name: "",
+    eventDate: "",
+    eventType: eventTypes[0],
+    contactMethod: "phone",
+    contactValue: "",
+    projectDetails: "",
+  });
+  const [formStatus, setFormStatus] = useState("idle");
+  const [formMessage, setFormMessage] = useState("");
+  const isSubmitting = formStatus === "submitting";
+
+  const updateField = (field, value) => {
+    setFormData((current) => ({ ...current, [field]: value }));
+    if (formMessage) {
+      setFormMessage("");
+      setFormStatus("idle");
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const payload = {
+      name: formData.name.trim(),
+      eventDate: formData.eventDate.trim(),
+      eventType: formData.eventType.trim(),
+      contactMethod: formData.contactMethod,
+      contactValue: formData.contactValue.trim(),
+      projectDetails: formData.projectDetails.trim(),
+    };
+
+    if (Object.values(payload).some((value) => !value)) {
+      setFormStatus("error");
+      setFormMessage("Please fill in every field before submitting.");
+      return;
+    }
+
+    if (
+      payload.contactMethod === "email" &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.contactValue)
+    ) {
+      setFormStatus("error");
+      setFormMessage("Please enter a valid email address.");
+      return;
+    }
+
+    if (payload.contactMethod !== "email" && payload.contactValue.length < 6) {
+      setFormStatus("error");
+      setFormMessage("Please enter a valid phone number.");
+      return;
+    }
+
+    setFormStatus("submitting");
+    setFormMessage("");
+
+    try {
+      const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+      const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
+
+      if (!botToken || !chatId) {
+        throw new Error("Telegram is not configured.");
+      }
+
+      const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: formatBookingMessage(payload).slice(0, 4096),
+          disable_web_page_preview: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Booking alert failed.");
+      }
+
+      setFormData({
+        name: "",
+        eventDate: "",
+        eventType: eventTypes[0],
+        contactMethod: "phone",
+        contactValue: "",
+        projectDetails: "",
+      });
+      setFormStatus("success");
+      setFormMessage("Inquiry sent. We will get back to you soon.");
+    } catch {
+      setFormStatus("error");
+      setFormMessage("Unable to send inquiry right now. Please try again.");
+    }
+  };
+
   return (
-    <section className="section-shell" id="booking">
-      <div className="bento-card relative mx-auto max-w-4xl overflow-visible p-8 md:p-16">
-        <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-primary-container/5 blur-3xl" />
-        <div className="relative z-10 mb-10 text-center">
-          <h2 className="section-title">Initiate Protocol</h2>
-          <p className="body-copy mt-3">
-            Inquire about availability for your next event.
-          </p>
-        </div>
-        <form className="relative z-10 space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <Field label="Name / Organization" placeholder="Enter details" />
-            <DateField label="Event Date" />
+    <section className="booking-section section-shell" id="booking">
+      {formStatus === "success" && <ConfettiBurst />}
+      <div className="relative mx-auto max-w-5xl overflow-visible px-2 py-8 text-center md:py-14">
+        <span className="booking-kicker">Concierge Services</span>
+        <h2 className="booking-heading">Reserve the Experience</h2>
+        <p className="booking-subtitle">
+          Connect with our team to design the sonic landscape for your upcoming
+          event.
+        </p>
+        <form
+          className="booking-form-panel mx-auto mt-10 text-left"
+          onSubmit={handleSubmit}
+        >
+          <div className="grid grid-cols-1 gap-x-8 gap-y-7 md:grid-cols-2">
+            <Field
+              label="Full Name"
+              placeholder="Jane Doe"
+              value={formData.name}
+              onChange={(event) => updateField("name", event.target.value)}
+            />
+            <EventTypeSelect
+              value={formData.eventType}
+              onChange={(value) => updateField("eventType", value)}
+            />
+            <DateField
+              label="Event Date"
+              value={formData.eventDate}
+              onChange={(value) => updateField("eventDate", value)}
+            />
+            <label className="block space-y-2">
+              <span className="label-caps text-on-surface-variant">
+                Contact Option
+              </span>
+              <div className="contact-method-toggle">
+                {[
+                  ["phone", "Phone"],
+                  ["email", "Email"],
+                ].map(([method, label]) => (
+                  <button
+                    className={`contact-method-button ${
+                      formData.contactMethod === method ? "active" : ""
+                    }`}
+                    type="button"
+                    key={method}
+                    onClick={() => {
+                      updateField("contactMethod", method);
+                      updateField("contactValue", "");
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </label>
           </div>
-          <EventTypeSelect />
+          <Field
+            label={
+              formData.contactMethod === "email"
+                ? "Email Address"
+                : "Phone Number"
+            }
+            placeholder={
+              formData.contactMethod === "email"
+                ? "you@example.com"
+                : "+91 98765 43210"
+            }
+            type={formData.contactMethod === "email" ? "email" : "tel"}
+            value={formData.contactValue}
+            onChange={(event) => updateField("contactValue", event.target.value)}
+          />
           <label className="block space-y-2">
             <span className="label-caps text-on-surface-variant">
               Project Details
             </span>
             <textarea
-              className="form-field min-h-32 resize-none"
-              placeholder="Describe the vibe, venue, and technical requirements..."
+              className="form-field min-h-28 resize-none"
+              placeholder="Tell us about your vision, venue, and date..."
+              value={formData.projectDetails}
+              onChange={(event) =>
+                updateField("projectDetails", event.target.value)
+              }
             />
           </label>
-          <div className="flex justify-center pt-3">
-            <button className="btn-primary w-full md:w-auto" type="button">
-              Submit Inquiry
+          {formMessage && (
+            <p
+              className={`text-center text-sm font-semibold ${
+                formStatus === "success" ? "text-primary-container" : "text-primary"
+              }`}
+              role="status"
+            >
+              {formMessage}
+            </p>
+          )}
+          <div className="booking-form-footer">
+            <span className="booking-quick-connect">
+              {formData.contactMethod === "email"
+                ? "Email quick connect"
+                : "WhatsApp quick connect"}
+            </span>
+            <button
+              className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Sending..." : "Submit Inquiry"}
             </button>
           </div>
         </form>
       </div>
     </section>
+  );
+}
+
+function ConfettiBurst() {
+  const confettiPieces = Array.from({ length: 44 }, (_, index) => ({
+    id: index,
+    left: `${(index * 23) % 100}%`,
+    delay: `${(index % 11) * 0.08}s`,
+    duration: `${2.2 + (index % 5) * 0.18}s`,
+    drift: `${((index % 9) - 4) * 18}px`,
+    rotation: `${180 + (index % 8) * 45}deg`,
+    color: ["#f4c46f", "#bf00ff", "#ecb1ff", "#eeddee"][index % 4],
+  }));
+
+  return (
+    <div className="confetti-overlay" aria-hidden="true">
+      {confettiPieces.map((piece) => (
+        <span
+          className="confetti-piece"
+          key={piece.id}
+          style={{
+            "--confetti-left": piece.left,
+            "--confetti-delay": piece.delay,
+            "--confetti-duration": piece.duration,
+            "--confetti-drift": piece.drift,
+            "--confetti-rotation": piece.rotation,
+            "--confetti-color": piece.color,
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -717,9 +922,25 @@ const eventTypes = [
   "Private Venue",
 ];
 
-function EventTypeSelect() {
+const formatBookingMessage = ({
+  name,
+  eventDate,
+  eventType,
+  contactMethod,
+  contactValue,
+  projectDetails,
+}) => `New Booking Inquiry
+
+Name / Organization: ${name}
+Event Date: ${eventDate}
+Event Type: ${eventType}
+Contact (${contactMethod}): ${contactValue}
+
+Project Details:
+${projectDetails}`;
+
+function EventTypeSelect({ value, onChange }) {
   const [open, setOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState(eventTypes[0]);
   const selectRef = useRef(null);
 
   useEffect(() => {
@@ -743,26 +964,26 @@ function EventTypeSelect() {
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
-        <span>{selectedType}</span>
+        <span>{value}</span>
         <ChevronDown
           className={`custom-select-chevron ${open ? "open" : ""}`}
           size={18}
         />
       </button>
-      <input type="hidden" name="eventType" value={selectedType} />
+      <input type="hidden" name="eventType" value={value} />
       {open && (
         <div className="custom-select-menu" role="listbox" aria-label="Event Type">
           {eventTypes.map((type) => (
             <button
               className={`custom-select-option ${
-                selectedType === type ? "selected" : ""
+                value === type ? "selected" : ""
               }`}
               type="button"
               role="option"
-              aria-selected={selectedType === type}
+              aria-selected={value === type}
               key={type}
               onClick={() => {
-                setSelectedType(type);
+                onChange(type);
                 setOpen(false);
               }}
             >
@@ -791,7 +1012,7 @@ function isSameDate(date, comparisonDate) {
   );
 }
 
-function DateField({ label }) {
+function DateField({ label, value, onChange }) {
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [viewDate, setViewDate] = useState(new Date());
@@ -817,6 +1038,12 @@ function DateField({ label }) {
     return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
   }, []);
 
+  useEffect(() => {
+    if (!value) {
+      setSelectedDate(null);
+    }
+  }, [value]);
+
   const changeMonth = (offset) => {
     setViewDate(new Date(year, month + offset, 1));
   };
@@ -824,6 +1051,7 @@ function DateField({ label }) {
   const selectDate = (day) => {
     const nextDate = new Date(year, month, day);
     setSelectedDate(nextDate);
+    onChange(formatDate(nextDate));
     setOpen(false);
   };
 
@@ -831,6 +1059,7 @@ function DateField({ label }) {
     const nextDate = new Date();
     setSelectedDate(nextDate);
     setViewDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+    onChange(formatDate(nextDate));
     setOpen(false);
   };
 
@@ -845,7 +1074,7 @@ function DateField({ label }) {
         onClick={() => setOpen((value) => !value)}
       >
         <span className={selectedDate ? "text-on-surface" : "text-on-surface-variant/60"}>
-          {selectedDate ? formatDate(selectedDate) : "mm/dd/yyyy"}
+          {value || "mm/dd/yyyy"}
         </span>
         <Calendar className="shrink-0 text-on-surface-variant" size={18} />
       </button>
@@ -903,7 +1132,10 @@ function DateField({ label }) {
             <button
               className="calendar-text-button"
               type="button"
-              onClick={() => setSelectedDate(null)}
+              onClick={() => {
+                setSelectedDate(null);
+                onChange("");
+              }}
             >
               Clear
             </button>
