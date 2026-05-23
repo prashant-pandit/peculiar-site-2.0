@@ -25,8 +25,7 @@ const images = {
   media2: "/videos/media2.mp4",
   media3: "/videos/media3.mp4",
   hero: "https://lh3.googleusercontent.com/aida-public/AB6AXuAqKzu1AparutUahKdpYJLTQ4oh3_erCH8JN2NViVp-3DGP3vv8dg_4h9f9qK9AQEkoG2tO6m69Eg0OG0jW4G21KwCtHY4D4sw3q4lUBmce67dwHBmtBlpWWFaJQLgA_CXNeZzXaKq443NmMJGYb3y16_Er9buhu55779O3IEgLhGifDAFiNkBVSGXRy_lUTN45dDjG3SCuyodo5AtzPqa2Ow7znr_HzWIZIJUCSKWFWiO-pYRjEuQE1PM-ZoPfvN-_nA9vF1YgKJEo",
-  portrait:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDmeZJpwKr20rvrmfBp7b494ZAxH0w6zPzEk6Z1rGuLEwKJTLa8KTewwmR2yfqJJgLkNBBOru7w3L1_3UR-e_cyFRGl8w4oMRNQINbMQgBMDc5uDSmb2nzO-YAHNn4VmGjSQP0oWYvjOpTo7o7mbjSTsOIvPx21UCoGnls368sQ7USiY-IIZM4KKxA_2B37e_fhwElGgkjwWGQ5HoslB6b6FU3XgQfYwJ07OUvo5iKYI5ZdDZMhz1hP-WhhK6zXSOzsEPFjquyljqHD",
+  portrait: "/images/profile.JPEG",
   festival:
     "https://lh3.googleusercontent.com/aida-public/AB6AXuC0xZ4KaAk_scAcdw4st9uhwMEvOUaslhsIK_ZgQlb3TSYhGVSZ105irWAqe-kT3eUAPTnxmI0PzDaUQ9hJLsg8JrADngUxCs0i2bT0MMJ1XZM9iQtucvEvbbdKsD3FSc4Gfro9PyzxH3GgzpinPc4OFgGTZtvr-aNDAM1CUE8w7UKAyeqeUYXQcNI0PHRXzRwQInlnHucf6SK0vbBZ18QSBVBD_yRMjcs_QsbzgqXh7R_a9MN9-Eq7xWjPIXVglFI-VL1Mdi5QvCkx",
   deck: "https://lh3.googleusercontent.com/aida-public/AB6AXuDixebxd1ASF9II5LQMNkND8uhH57RSXUO1wWgnvShzgfW_y5YX8ef_FvpOy2kcUA-niSJ0CUtND0tXW0BWe5Uv0iToNGMjo6VCY_XRtgFOKNmgIWW3NlhZPcszfFWhwDq4s8WmYknd0iAqfqAqDn-_5Q7kAqF-Eu4PIcLXI5h7AGBInzmQ5nsMNEFk13yx2bj-rrZGnv1jyUVT72UqzYfThiBDRz0DUFUxsBufSqL_H2r5EWwTrlqAa5mmpWLKPeb1AML9cZUBNpam",
@@ -50,17 +49,17 @@ const experiences = [
   {
     icon: Moon,
     title: "Club & Nightlife",
-    copy: "High-energy electronic sets designed for peak-time dancefloors. Deep, driving rhythms spanning house to techno.",
+    copy: "Electrifying sets built for packed dance floors. From Bollywood bangers to Techno and commercial anthems, every transition is designed to keep the crowd moving all night long.",
   },
   {
     icon: Building2,
     title: "Corporate Galas",
-    copy: "Sophisticated, low-profile soundscapes that encourage networking, transitioning smoothly to celebratory energy later in the evening.",
+    copy: "Professional yet energetic musical experiences tailored for corporate events, private parties, launches, and celebrations — creating the perfect atmosphere from start to finish.",
   },
   {
     icon: Sparkles,
     title: "Luxury Weddings",
-    copy: "Bespoke musical curation from cocktail hour to the final send-off, blending classic anthems with modern edits seamlessly.",
+    copy: "From elegant entries to unforgettable dance-floor moments, curated music experiences that blend timeless favorites with high-energy celebrations for every generation.",
   },
 ];
 
@@ -103,9 +102,9 @@ const youtubePlaylist = {
 };
 
 const navLinks = [
-  ["Experience", "#experience"],
   ["Media", "#media"],
   ["Releases", "#releases"],
+  ["Experience", "#experience"],
   ["Bookings", "#booking"],
 ];
 
@@ -241,7 +240,10 @@ function MusicStringWave() {
     <div className="music-string-wave" aria-hidden="true">
       <svg viewBox="0 0 180 42" role="presentation">
         {strings.map((path, index) => (
-          <g className={`music-string-layer music-string-layer-${index + 1}`} key={path}>
+          <g
+            className={`music-string-layer music-string-layer-${index + 1}`}
+            key={path}
+          >
             <path className="music-string music-string-glow" d={path} />
             <path className="music-string" d={path} />
             <path className="music-string music-string-trail" d={path} />
@@ -376,7 +378,7 @@ function Intro() {
 function Experiences() {
   return (
     <section className="section-shell" id="experience">
-      <h2 className="section-title mb-10">Curated Experiences</h2>
+      <h2 className="section-title mb-10">Events & Experiences</h2>
       <div className="grid grid-cols-1 gap-gutter md:grid-cols-3">
         {experiences.map(({ icon: Icon, title, copy }) => (
           <article key={title} className="bento-card p-8">
@@ -838,7 +840,7 @@ function Booking() {
           />
           <label className="block space-y-2">
             <span className="label-caps text-on-surface-variant">
-              Project Details
+              Event Details
             </span>
             <textarea
               className="form-field min-h-28 resize-none"
@@ -936,7 +938,7 @@ Event Date: ${eventDate}
 Event Type: ${eventType}
 Contact (${contactMethod}): ${contactValue}
 
-Project Details:
+Event Details:
 ${projectDetails}`;
 
 function EventTypeSelect({ value, onChange }) {
@@ -951,7 +953,8 @@ function EventTypeSelect({ value, onChange }) {
     };
 
     document.addEventListener("pointerdown", closeOnOutsideClick);
-    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+    return () =>
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
   }, []);
 
   return (
@@ -972,7 +975,11 @@ function EventTypeSelect({ value, onChange }) {
       </button>
       <input type="hidden" name="eventType" value={value} />
       {open && (
-        <div className="custom-select-menu" role="listbox" aria-label="Event Type">
+        <div
+          className="custom-select-menu"
+          role="listbox"
+          aria-label="Event Type"
+        >
           {eventTypes.map((type) => (
             <button
               className={`custom-select-option ${
@@ -1035,7 +1042,8 @@ function DateField({ label, value, onChange }) {
     };
 
     document.addEventListener("pointerdown", closeOnOutsideClick);
-    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+    return () =>
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
   }, []);
 
   useEffect(() => {
@@ -1113,7 +1121,8 @@ function DateField({ label, value, onChange }) {
               day ? (
                 <button
                   className={`calendar-day ${
-                    selectedDate && isSameDate(new Date(year, month, day), selectedDate)
+                    selectedDate &&
+                    isSameDate(new Date(year, month, day), selectedDate)
                       ? "selected"
                       : ""
                   } ${isSameDate(new Date(year, month, day), today) ? "today" : ""}`}
@@ -1139,7 +1148,11 @@ function DateField({ label, value, onChange }) {
             >
               Clear
             </button>
-            <button className="calendar-text-button" type="button" onClick={selectToday}>
+            <button
+              className="calendar-text-button"
+              type="button"
+              onClick={selectToday}
+            >
               Today
             </button>
           </div>
