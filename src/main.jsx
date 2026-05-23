@@ -19,6 +19,9 @@ import "./styles.css";
 const images = {
   logo_w: "/images/logo-w.png",
   heroVideo: "/videos/hero-bg.mp4",
+  media1: "/videos/media1.mp4",
+  media2: "/videos/media2.mp4",
+  media3: "/videos/media3.mp4",
   hero: "https://lh3.googleusercontent.com/aida-public/AB6AXuAqKzu1AparutUahKdpYJLTQ4oh3_erCH8JN2NViVp-3DGP3vv8dg_4h9f9qK9AQEkoG2tO6m69Eg0OG0jW4G21KwCtHY4D4sw3q4lUBmce67dwHBmtBlpWWFaJQLgA_CXNeZzXaKq443NmMJGYb3y16_Er9buhu55779O3IEgLhGifDAFiNkBVSGXRy_lUTN45dDjG3SCuyodo5AtzPqa2Ow7znr_HzWIZIJUCSKWFWiO-pYRjEuQE1PM-ZoPfvN-_nA9vF1YgKJEo",
   portrait:
     "https://lh3.googleusercontent.com/aida-public/AB6AXuDmeZJpwKr20rvrmfBp7b494ZAxH0w6zPzEk6Z1rGuLEwKJTLa8KTewwmR2yfqJJgLkNBBOru7w3L1_3UR-e_cyFRGl8w4oMRNQINbMQgBMDc5uDSmb2nzO-YAHNn4VmGjSQP0oWYvjOpTo7o7mbjSTsOIvPx21UCoGnls368sQ7USiY-IIZM4KKxA_2B37e_fhwElGgkjwWGQ5HoslB6b6FU3XgQfYwJ07OUvo5iKYI5ZdDZMhz1hP-WhhK6zXSOzsEPFjquyljqHD",
@@ -308,41 +311,64 @@ function Experiences() {
 function Media() {
   return (
     <section className="section-shell" id="media">
-      <h2 className="section-title mb-10">Visual Proof</h2>
+      <h2 className="section-title mb-10">Visuals</h2>
       <div className="grid grid-cols-1 gap-gutter md:grid-cols-12">
         <div className="bento-card group relative aspect-video overflow-hidden md:col-span-8">
-          <img
-            src={images.festival}
-            alt="Festival mainstage performance"
-            className="h-full w-full object-cover opacity-80 transition duration-500 group-hover:opacity-100"
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition group-hover:bg-black/20">
-            <button className="play-button" aria-label="Play festival video">
-              <Play size={34} fill="currentColor" />
-            </button>
-          </div>
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            controls
+            loop
+            playsInline
+            aria-label="Peculiar Beats performance background"
+          >
+            <source src={images.media1} type="video/mp4" />
+          </video>
           <div className="absolute bottom-6 left-6">
             <span className="label-caps rounded border border-primary/30 bg-black/80 px-3 py-1 text-primary">
-              Live Set
+              Club Gig
             </span>
-            <h3 className="mt-2 font-syne text-2xl font-semibold text-on-surface">
+            {/* <h3 className="mt-2 font-syne text-2xl font-semibold text-on-surface">
               Neon Nights Festival 2023
-            </h3>
+            </h3> */}
           </div>
         </div>
-        <div className="flex flex-col gap-gutter md:col-span-4">
-          {[images.deck, images.booth].map((src, index) => (
-            <div
-              className="bento-card group aspect-[4/3] overflow-hidden"
-              key={src}
-            >
-              <img
-                src={src}
-                alt={index === 0 ? "Intimate club set" : "Luxury event setup"}
-                className="h-full w-full object-cover opacity-70 grayscale transition duration-500 group-hover:opacity-100 group-hover:grayscale-0"
-              />
-            </div>
-          ))}
+        <div className="bento-card group relative aspect-video overflow-hidden md:col-span-8">
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            controls
+            loop
+            playsInline
+            aria-label="Peculiar Beats performance background"
+          >
+            <source src={images.media3} type="video/mp4" />
+          </video>
+          <div className="absolute bottom-6 left-6">
+            <span className="label-caps rounded border border-primary/30 bg-black/80 px-3 py-1 text-primary">
+              Collage Fest
+            </span>
+            {/* <h3 className="mt-2 font-syne text-2xl font-semibold text-on-surface">
+              Neon Nights Festival 2023
+            </h3> */}
+          </div>
+        </div>
+        <div className="bento-card group relative aspect-video overflow-hidden md:col-span-8">
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            controls
+            loop
+            playsInline
+            aria-label="Peculiar Beats performance background"
+          >
+            <source src={images.media2} type="video/mp4" />
+          </video>
+          <div className="absolute bottom-6 left-6">
+            <span className="label-caps rounded border border-primary/30 bg-black/80 px-3 py-1 text-primary">
+              Club Gig
+            </span>
+            {/* <h3 className="mt-2 font-syne text-2xl font-semibold text-on-surface">
+              Neon Nights Festival 2023
+            </h3> */}
+          </div>
         </div>
       </div>
     </section>
@@ -458,10 +484,9 @@ function Releases() {
     >
       <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="section-title">Sonic Architecture</h2>
+          <h2 className="section-title">Music Releases</h2>
           <p className="body-copy mt-4 max-w-2xl">
-            Browse the Peculiar Beats playlist and play each track directly from
-            here.
+            Browse the playlist and play each track directly from here.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -665,9 +690,9 @@ function App() {
         <Stats />
         <Partners />
         <Intro />
-        <Experiences />
         <Media />
         <Releases />
+        <Experiences />
         <Booking />
       </main>
       <Footer />
