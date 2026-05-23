@@ -64,6 +64,24 @@ const experiences = [
   },
 ];
 
+const mediaVideos = [
+  {
+    title: "Club Gig",
+    meta: "Live performance footage",
+    src: images.media1,
+  },
+  {
+    title: "College Fest",
+    meta: "Crowd energy highlights",
+    src: images.media3,
+  },
+  {
+    title: "After Hours Set",
+    meta: "Club night recap",
+    src: images.media2,
+  },
+];
+
 const partnerLogos = [
   ["Brand 1", "/images/partners/brand-1.jpg"],
   ["Brand 2", "/images/partners/brand-2.jpg"],
@@ -377,65 +395,67 @@ function Experiences() {
 }
 
 function Media() {
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+  const selectedVideo = mediaVideos[selectedVideoIndex];
+
   return (
     <section className="section-shell" id="media">
-      <h2 className="section-title mb-10">Visuals</h2>
-      <div className="grid grid-cols-1 gap-gutter md:grid-cols-12">
-        <div className="bento-card group relative aspect-video overflow-hidden md:col-span-8">
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            controls
-            loop
-            playsInline
-            aria-label="Peculiar Beats performance background"
-          >
-            <source src={images.media1} type="video/mp4" />
-          </video>
-          <div className="absolute bottom-6 left-6">
-            <span className="label-caps rounded border border-primary/30 bg-black/80 px-3 py-1 text-primary">
-              Club Gig
-            </span>
-            {/* <h3 className="mt-2 font-syne text-2xl font-semibold text-on-surface">
-              Neon Nights Festival 2023
-            </h3> */}
+      <div className="visuals-panel">
+        <h2 className="section-title mb-8">Visuals</h2>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <div className="min-w-0">
+            <div className="visuals-featured-video">
+              <video
+                key={selectedVideo.src}
+                className="h-full w-full object-cover"
+                controls
+                loop
+                playsInline
+                aria-label={`${selectedVideo.title} video`}
+              >
+                <source src={selectedVideo.src} type="video/mp4" />
+              </video>
+            </div>
+            <div className="mt-5">
+              <span className="label-caps text-primary">Featured Video</span>
+              <h3 className="mt-2 font-syne text-2xl font-bold text-on-surface">
+                {selectedVideo.title}
+              </h3>
+              <p className="body-copy mt-1">{selectedVideo.meta}</p>
+            </div>
           </div>
-        </div>
-        <div className="bento-card group relative aspect-video overflow-hidden md:col-span-8">
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            controls
-            loop
-            playsInline
-            aria-label="Peculiar Beats performance background"
-          >
-            <source src={images.media3} type="video/mp4" />
-          </video>
-          <div className="absolute bottom-6 left-6">
-            <span className="label-caps rounded border border-primary/30 bg-black/80 px-3 py-1 text-primary">
-              Collage Fest
-            </span>
-            {/* <h3 className="mt-2 font-syne text-2xl font-semibold text-on-surface">
-              Neon Nights Festival 2023
-            </h3> */}
-          </div>
-        </div>
-        <div className="bento-card group relative aspect-video overflow-hidden md:col-span-8">
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            controls
-            loop
-            playsInline
-            aria-label="Peculiar Beats performance background"
-          >
-            <source src={images.media2} type="video/mp4" />
-          </video>
-          <div className="absolute bottom-6 left-6">
-            <span className="label-caps rounded border border-primary/30 bg-black/80 px-3 py-1 text-primary">
-              Club Gig
-            </span>
-            {/* <h3 className="mt-2 font-syne text-2xl font-semibold text-on-surface">
-              Neon Nights Festival 2023
-            </h3> */}
+          <div className="visuals-playlist" aria-label="Visual playlist">
+            {mediaVideos.map((video, index) => (
+              <button
+                className={`visuals-playlist-item ${
+                  selectedVideoIndex === index ? "active" : ""
+                }`}
+                type="button"
+                key={video.src}
+                onClick={() => setSelectedVideoIndex(index)}
+              >
+                <span className="visuals-thumb">
+                  <video
+                    className="h-full w-full object-cover"
+                    muted
+                    playsInline
+                    preload="metadata"
+                    aria-hidden="true"
+                  >
+                    <source src={video.src} type="video/mp4" />
+                  </video>
+                  <span className="visuals-play-icon">
+                    <Play size={18} fill="currentColor" />
+                  </span>
+                </span>
+                <span className="label-caps block text-left text-on-surface">
+                  {video.title}
+                </span>
+                <span className="mt-1 block text-left text-xs text-on-surface-variant">
+                  {video.meta}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>

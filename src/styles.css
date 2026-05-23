@@ -280,6 +280,81 @@ section[id] {
   box-shadow: inset 0 0 0 1px rgba(191, 0, 255, 0.35);
 }
 
+.visuals-panel {
+  border: 1px solid rgba(236, 177, 255, 0.18);
+  border-radius: 0.5rem;
+  background: #121212;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.visuals-featured-video {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(236, 177, 255, 0.22);
+  border-radius: 0.5rem;
+  background: #000;
+}
+
+.visuals-playlist {
+  display: flex;
+  max-height: 33rem;
+  flex-direction: column;
+  gap: 0.9rem;
+  overflow-y: auto;
+  padding-right: 0.4rem;
+}
+
+.visuals-playlist::-webkit-scrollbar {
+  width: 0.35rem;
+}
+
+.visuals-playlist::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgba(236, 177, 255, 0.28);
+}
+
+.visuals-playlist-item {
+  width: 100%;
+  border: 1px solid rgba(238, 221, 238, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.65rem;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.visuals-playlist-item:hover,
+.visuals-playlist-item.active {
+  border-color: rgba(236, 177, 255, 0.5);
+  background: rgba(236, 177, 255, 0.07);
+}
+
+.visuals-playlist-item:hover {
+  transform: translateY(-1px);
+}
+
+.visuals-thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.35rem;
+  background: #000;
+  margin-bottom: 0.65rem;
+}
+
+.visuals-play-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(238, 221, 238, 0.9);
+  background: rgba(0, 0, 0, 0.24);
+}
+
 .calendar-popover {
   position: absolute;
   top: calc(100% + 0.75rem);
@@ -571,6 +646,11 @@ section[id] {
   .track-card .font-syne {
     font-size: 1rem;
     line-height: 1.25;
+  }
+
+  .visuals-playlist {
+    max-height: none;
+    padding-right: 0;
   }
 
   .calendar-popover {
