@@ -441,6 +441,154 @@ section[id] {
   color: #ecb1ff;
 }
 
+.booking-section {
+  position: relative;
+}
+
+.booking-section::before {
+  position: absolute;
+  inset: -5rem 0 auto;
+  height: 28rem;
+  content: "";
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(244, 196, 111, 0.08), transparent 35%),
+    linear-gradient(rgba(25, 16, 28, 0.2), rgba(25, 16, 28, 0.95));
+}
+
+.booking-kicker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(244, 196, 111, 0.24);
+  border-radius: 9999px;
+  background: rgba(244, 196, 111, 0.06);
+  padding: 0.35rem 0.9rem;
+  color: #f4c46f;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.booking-heading {
+  margin-top: 1rem;
+  font-family: Syne, sans-serif;
+  font-size: clamp(2.25rem, 5vw, 4.25rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: #eeddee;
+}
+
+.booking-subtitle {
+  margin: 1rem auto 0;
+  max-width: 42rem;
+  color: rgba(238, 221, 238, 0.72);
+}
+
+.booking-form-panel {
+  position: relative;
+  width: min(100%, 50.5rem);
+  border: 1px solid rgba(238, 221, 238, 0.08);
+  border-radius: 1rem;
+  background: rgba(43, 40, 37, 0.86);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+}
+
+.booking-form-panel .form-field {
+  border-width: 0 0 1px;
+  border-color: rgba(238, 221, 238, 0.16);
+  border-radius: 0;
+  background: transparent;
+  padding-inline: 0;
+  color: #eeddee;
+  box-shadow: none;
+}
+
+.booking-form-panel .form-field:focus {
+  border-color: rgba(244, 196, 111, 0.58);
+  box-shadow: none;
+}
+
+.booking-form-panel .form-field::placeholder {
+  color: rgba(238, 221, 238, 0.32);
+}
+
+.booking-form-panel .custom-select-menu,
+.booking-form-panel .calendar-popover {
+  background: rgba(34, 32, 30, 0.98);
+}
+
+.contact-method-toggle {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  border-bottom: 1px solid rgba(238, 221, 238, 0.16);
+  padding-bottom: 0.65rem;
+}
+
+.contact-method-button {
+  border: 1px solid rgba(238, 221, 238, 0.1);
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.12);
+  padding: 0.55rem 0.75rem;
+  color: rgba(238, 221, 238, 0.66);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.contact-method-button:hover,
+.contact-method-button.active {
+  border-color: rgba(244, 196, 111, 0.38);
+  background: rgba(244, 196, 111, 0.12);
+  color: #f4c46f;
+}
+
+.booking-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding-top: 1rem;
+}
+
+.booking-quick-connect {
+  color: rgba(238, 221, 238, 0.74);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.confetti-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -1rem;
+  left: var(--confetti-left);
+  width: 0.48rem;
+  height: 0.8rem;
+  border-radius: 0.12rem;
+  background: var(--confetti-color);
+  opacity: 0;
+  animation: confetti-fall var(--confetti-duration) ease-out var(--confetti-delay)
+    forwards;
+}
+
 .custom-select-trigger {
   display: flex;
   align-items: center;
@@ -604,6 +752,23 @@ section[id] {
 @keyframes music-string-flow {
   to {
     stroke-dashoffset: -228;
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -1rem, 0) rotate(0deg);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--confetti-drift), 105vh, 0)
+      rotate(var(--confetti-rotation));
   }
 }
 
