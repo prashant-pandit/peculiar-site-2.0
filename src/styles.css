@@ -89,6 +89,67 @@ body {
   text-wrap: balance;
 }
 
+section[id] {
+  scroll-margin-top: 7rem;
+}
+
+.music-string-wave {
+  width: min(180px, 52vw);
+  margin-top: 2rem;
+  opacity: 0.92;
+}
+
+.music-string-wave svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.music-string {
+  fill: none;
+  stroke: #f4c46f;
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 52 22;
+  animation: music-string-flow 3.4s linear infinite;
+}
+
+.music-string-layer-1 {
+  opacity: 0.72;
+}
+
+.music-string-layer-2 {
+  opacity: 0.64;
+}
+
+.music-string-layer-3 {
+  opacity: 0.52;
+}
+
+.music-string-layer-1 .music-string {
+  animation-duration: 3.2s;
+}
+
+.music-string-layer-3 .music-string {
+  animation-duration: 2.35s;
+  animation-direction: reverse;
+}
+
+.music-string-glow {
+  stroke: rgba(244, 196, 111, 0.28);
+  stroke-width: 3;
+  filter: blur(4px);
+}
+
+.music-string-trail {
+  stroke: rgba(255, 236, 187, 0.72);
+  stroke-width: 0.45;
+  stroke-dasharray: 12 88;
+  animation-duration: 1.9s;
+  animation-direction: reverse;
+}
+
 .marquee-track {
   display: flex;
   width: max-content;
@@ -219,6 +280,232 @@ body {
   box-shadow: inset 0 0 0 1px rgba(191, 0, 255, 0.35);
 }
 
+.calendar-popover {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  z-index: 40;
+  width: min(22rem, calc(100vw - 3rem));
+  border: 1px solid rgba(236, 177, 255, 0.16);
+  border-radius: 0.5rem;
+  background: rgba(43, 40, 49, 0.98);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.48),
+    0 0 0 1px rgba(191, 0, 255, 0.08);
+  padding: 1.25rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.calendar-weekday {
+  display: flex;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  color: rgba(238, 221, 238, 0.64);
+  font-weight: 700;
+}
+
+.calendar-day,
+.calendar-nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  color: rgba(238, 221, 238, 0.82);
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background: transparent;
+  font-size: 1rem;
+}
+
+.calendar-day:hover,
+.calendar-nav-button:hover {
+  background: rgba(236, 177, 255, 0.12);
+  color: #eeddee;
+}
+
+.calendar-day.today {
+  color: #ecb1ff;
+}
+
+.calendar-day.selected {
+  background: rgba(191, 0, 255, 0.58);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(191, 0, 255, 0.72);
+}
+
+.calendar-nav-button {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: transparent;
+}
+
+.calendar-text-button {
+  border: 0;
+  background: transparent;
+  color: rgba(236, 177, 255, 0.76);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: color 160ms ease;
+}
+
+.calendar-text-button:hover {
+  color: #ecb1ff;
+}
+
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  text-align: left;
+}
+
+.custom-select-trigger.open {
+  border-color: rgba(236, 177, 255, 0.58);
+}
+
+.custom-select-chevron {
+  flex-shrink: 0;
+  color: rgba(236, 177, 255, 0.72);
+  transition: transform 160ms ease;
+}
+
+.custom-select-chevron.open {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  z-index: 35;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(238, 221, 238, 0.16);
+  border-radius: 0.5rem;
+  background: rgba(18, 18, 18, 0.98);
+  padding: 0.35rem;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.34);
+}
+
+.custom-select-option {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 0.35rem;
+  background: transparent;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  color: rgba(238, 221, 238, 0.82);
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.custom-select-option:hover,
+.custom-select-option.selected {
+  background: rgba(238, 221, 238, 0.08);
+  color: #eeddee;
+}
+
+.footer-frame {
+  position: relative;
+  width: 100%;
+  min-height: 14rem;
+  overflow: hidden;
+  border: 2px solid rgba(124, 92, 255, 0.88);
+  border-inline: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(rgba(18, 18, 18, 0.95), rgba(18, 18, 18, 0.95)),
+    radial-gradient(rgba(236, 177, 255, 0.18) 1px, transparent 1px);
+  background-size:
+    auto,
+    12px 12px;
+  box-shadow: inset 0 0 0 1px rgba(191, 0, 255, 0.16);
+}
+
+.footer-marquee {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.footer-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: footer-marquee 22s linear infinite;
+}
+
+.footer-marquee-text {
+  flex: 0 0 auto;
+  padding-right: clamp(2rem, 5vw, 4rem);
+  font-family: Syne, sans-serif;
+  font-size: clamp(5rem, 14vw, 12rem);
+  font-weight: 800;
+  line-height: 0.8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(238, 221, 238, 0.035);
+  white-space: nowrap;
+}
+
+.footer-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 14rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.footer-socials {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(1rem, 2.5vw, 2rem);
+}
+
+.footer-social-link,
+.footer-copyright {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.footer-social-link {
+  color: rgba(238, 221, 238, 0.42);
+  transition: color 160ms ease;
+}
+
+.footer-social-link:hover {
+  color: var(--social-color);
+}
+
+.footer-copyright {
+  color: #f4c46f;
+}
+
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -229,9 +516,33 @@ body {
   }
 }
 
+@keyframes footer-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes music-string-flow {
+  to {
+    stroke-dashoffset: -228;
+  }
+}
+
 @media (max-width: 640px) {
   .hero-title {
     font-size: clamp(2.5rem, 4vw, 4.4rem);
+  }
+
+  section[id] {
+    scroll-margin-top: 5.75rem;
+  }
+
+  .music-string-wave {
+    margin-top: 1.6rem;
   }
 
   .section-shell {
@@ -260,5 +571,23 @@ body {
   .track-card .font-syne {
     font-size: 1rem;
     line-height: 1.25;
+  }
+
+  .calendar-popover {
+    left: 0;
+    right: auto;
+  }
+
+  .footer-frame {
+    min-height: 12rem;
+  }
+
+  .footer-content {
+    min-height: 12rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .footer-socials {
+    gap: 0.75rem 1rem;
   }
 }

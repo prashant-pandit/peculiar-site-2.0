@@ -7,6 +7,8 @@ import {
   Building2,
   Calendar,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Menu,
   Moon,
   Play,
@@ -82,21 +84,53 @@ const youtubePlaylist = {
   url: "https://youtube.com/playlist?list=PLvo3DCww7VGHZ1vQmsmo-tptnITXMbhtn&si=6Nqole-uWL-a2-pf",
 };
 
+const navLinks = [
+  ["Experience", "#experience"],
+  ["Media", "#media"],
+  ["Releases", "#releases"],
+  ["Bookings", "#booking"],
+];
+
 function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const links = [
-    ["Experience", "#experience"],
-    ["Media", "#media"],
-    ["Releases", "#releases"],
-    ["Bookings", "#booking"],
-  ];
+  const [activeHref, setActiveHref] = useState(navLinks[0][1]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80);
+    const updateActiveLink = () => {
+      const activeLink = navLinks.find(([, href]) => {
+        const section = document.querySelector(href);
+        if (!section) return false;
+
+        const bounds = section.getBoundingClientRect();
+        return bounds.top <= 150 && bounds.bottom > 150;
+      });
+
+      if (activeLink) {
+        setActiveHref(activeLink[1]);
+      }
+    };
+
+    const onScroll = () => {
+      setScrolled(window.scrollY > 80);
+      updateActiveLink();
+    };
+
+    const onHashChange = () => {
+      if (navLinks.some(([, href]) => href === window.location.hash)) {
+        setActiveHref(window.location.hash);
+      }
+    };
+
+    onHashChange();
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("hashchange", onHashChange);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("hashchange", onHashChange);
+    };
   }, []);
 
   return (
@@ -119,17 +153,22 @@ function Header() {
           />
         </a>
         <div className="hidden items-center gap-8 md:flex">
-          {links.map(([item, href], index) => (
+          {navLinks.map(([item, href]) => (
             <a
               key={item}
               href={href}
-              className={`nav-link ${index === 0 ? "active" : ""}`}
+              className={`nav-link ${activeHref === href ? "active" : ""}`}
+              onClick={() => setActiveHref(href)}
             >
               {item}
             </a>
           ))}
         </div>
-        <a href="#booking" className="btn-primary hidden md:inline-flex">
+        <a
+          href="#booking"
+          className="btn-primary hidden md:inline-flex"
+          onClick={() => setActiveHref("#booking")}
+        >
           Book Now
         </a>
         <button
@@ -143,12 +182,15 @@ function Header() {
       {open && (
         <div className="border-t border-outline-variant/20 px-margin-mobile pb-5 md:hidden">
           <div className="flex flex-col gap-4 pt-4">
-            {links.map(([item, href], index) => (
+            {navLinks.map(([item, href]) => (
               <a
                 key={item}
                 href={href}
-                className={`nav-link w-fit ${index === 0 ? "active" : ""}`}
-                onClick={() => setOpen(false)}
+                className={`nav-link w-fit ${activeHref === href ? "active" : ""}`}
+                onClick={() => {
+                  setActiveHref(href);
+                  setOpen(false);
+                }}
               >
                 {item}
               </a>
@@ -156,7 +198,10 @@ function Header() {
             <a
               href="#booking"
               className="btn-primary w-full"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setActiveHref("#booking");
+                setOpen(false);
+              }}
             >
               Book Now
             </a>
@@ -164,6 +209,28 @@ function Header() {
         </div>
       )}
     </nav>
+  );
+}
+
+function MusicStringWave() {
+  const strings = [
+    "M7 25 C18 13 28 13 39 25 S61 37 72 25 S94 13 105 25 S127 37 138 25 S160 13 173 25",
+    "M7 25 C19 37 28 37 40 25 S61 13 73 25 S94 37 106 25 S127 13 139 25 S160 37 173 25",
+    "M7 25 C21 19 28 31 40 25 S60 19 73 25 S93 31 106 25 S126 19 139 25 S159 31 173 25",
+  ];
+
+  return (
+    <div className="music-string-wave" aria-hidden="true">
+      <svg viewBox="0 0 180 42" role="presentation">
+        {strings.map((path, index) => (
+          <g className={`music-string-layer music-string-layer-${index + 1}`} key={path}>
+            <path className="music-string music-string-glow" d={path} />
+            <path className="music-string" d={path} />
+            <path className="music-string music-string-trail" d={path} />
+          </g>
+        ))}
+      </svg>
+    </div>
   );
 }
 
@@ -187,7 +254,8 @@ function Hero() {
           Unique music. Limitless energy. One mission — keep the dance floor
           alive.
         </h1>
-        <div className="mt-12 flex flex-col justify-center gap-5 sm:flex-row">
+        <MusicStringWave />
+        <div className="mt-8 flex flex-col justify-center gap-5 sm:flex-row">
           <a href="#booking" className="btn-primary">
             Book for Event
           </a>
@@ -571,15 +639,9 @@ function Releases() {
           ))}
         </Slider>
       )}
-      {playlistStatus !== "ready" && (
+      {playlistStatus === "loading" && (
         <div className="bento-card mt-6 p-6">
-          <p className="body-copy">
-            {playlistStatus === "missing-key"
-              ? "Add a YouTube Data API key as VITE_YOUTUBE_API_KEY to show every playlist track as thumbnails here."
-              : playlistStatus === "loading"
-                ? "Loading playlist tracks..."
-                : "The playlist tracks could not be loaded right now. The YouTube player above still opens the playlist."}
-          </p>
+          <p className="body-copy">Loading playlist tracks...</p>
         </div>
       )}
     </section>
@@ -589,7 +651,7 @@ function Releases() {
 function Booking() {
   return (
     <section className="section-shell" id="booking">
-      <div className="bento-card relative mx-auto max-w-4xl overflow-hidden p-8 md:p-16">
+      <div className="bento-card relative mx-auto max-w-4xl overflow-visible p-8 md:p-16">
         <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-primary-container/5 blur-3xl" />
         <div className="relative z-10 mb-10 text-center">
           <h2 className="section-title">Initiate Protocol</h2>
@@ -600,29 +662,9 @@ function Booking() {
         <form className="relative z-10 space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Field label="Name / Organization" placeholder="Enter details" />
-            <Field
-              label="Event Date"
-              type="date"
-              icon={<Calendar size={18} />}
-            />
+            <DateField label="Event Date" />
           </div>
-          <label className="block space-y-2">
-            <span className="label-caps text-on-surface-variant">
-              Event Type
-            </span>
-            <span className="relative block">
-              <select className="form-field appearance-none">
-                <option>Club / Festival</option>
-                <option>Corporate Event</option>
-                <option>Luxury Wedding</option>
-                <option>Private Venue</option>
-              </select>
-              <ChevronDown
-                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
-                size={18}
-              />
-            </span>
-          </label>
+          <EventTypeSelect />
           <label className="block space-y-2">
             <span className="label-caps text-on-surface-variant">
               Project Details
@@ -643,14 +685,226 @@ function Booking() {
   );
 }
 
+const monthFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  year: "numeric",
+});
+const weekDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const eventTypes = [
+  "Club / Festival",
+  "Corporate Event",
+  "Luxury Wedding",
+  "Private Venue",
+];
+
+function EventTypeSelect() {
+  const [open, setOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState(eventTypes[0]);
+  const selectRef = useRef(null);
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event) => {
+      if (!selectRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, []);
+
+  return (
+    <div className="relative block space-y-2" ref={selectRef}>
+      <span className="label-caps text-on-surface-variant">Event Type</span>
+      <button
+        className={`form-field custom-select-trigger ${open ? "open" : ""}`}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span>{selectedType}</span>
+        <ChevronDown
+          className={`custom-select-chevron ${open ? "open" : ""}`}
+          size={18}
+        />
+      </button>
+      <input type="hidden" name="eventType" value={selectedType} />
+      {open && (
+        <div className="custom-select-menu" role="listbox" aria-label="Event Type">
+          {eventTypes.map((type) => (
+            <button
+              className={`custom-select-option ${
+                selectedType === type ? "selected" : ""
+              }`}
+              type="button"
+              role="option"
+              aria-selected={selectedType === type}
+              key={type}
+              onClick={() => {
+                setSelectedType(type);
+                setOpen(false);
+              }}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatDate(date) {
+  return date.toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
+function isSameDate(date, comparisonDate) {
+  return (
+    date.getFullYear() === comparisonDate.getFullYear() &&
+    date.getMonth() === comparisonDate.getMonth() &&
+    date.getDate() === comparisonDate.getDate()
+  );
+}
+
+function DateField({ label }) {
+  const [open, setOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [viewDate, setViewDate] = useState(new Date());
+  const pickerRef = useRef(null);
+  const today = new Date();
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const calendarCells = [
+    ...Array.from({ length: firstDay }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, index) => index + 1),
+  ];
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event) => {
+      if (!pickerRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, []);
+
+  const changeMonth = (offset) => {
+    setViewDate(new Date(year, month + offset, 1));
+  };
+
+  const selectDate = (day) => {
+    const nextDate = new Date(year, month, day);
+    setSelectedDate(nextDate);
+    setOpen(false);
+  };
+
+  const selectToday = () => {
+    const nextDate = new Date();
+    setSelectedDate(nextDate);
+    setViewDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative block space-y-2" ref={pickerRef}>
+      <span className="label-caps text-on-surface-variant">{label}</span>
+      <button
+        className="form-field flex items-center justify-between gap-3 pr-4 text-left"
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className={selectedDate ? "text-on-surface" : "text-on-surface-variant/60"}>
+          {selectedDate ? formatDate(selectedDate) : "mm/dd/yyyy"}
+        </span>
+        <Calendar className="shrink-0 text-on-surface-variant" size={18} />
+      </button>
+      {open && (
+        <div className="calendar-popover" role="dialog" aria-label={label}>
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="font-syne text-2xl font-bold text-on-surface">
+              {monthFormatter.format(viewDate)}
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                className="calendar-nav-button"
+                type="button"
+                aria-label="Previous month"
+                onClick={() => changeMonth(-1)}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                className="calendar-nav-button"
+                type="button"
+                aria-label="Next month"
+                onClick={() => changeMonth(1)}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+          <div className="calendar-grid mb-3">
+            {weekDays.map((day) => (
+              <span className="calendar-weekday" key={day}>
+                {day}
+              </span>
+            ))}
+            {calendarCells.map((day, index) =>
+              day ? (
+                <button
+                  className={`calendar-day ${
+                    selectedDate && isSameDate(new Date(year, month, day), selectedDate)
+                      ? "selected"
+                      : ""
+                  } ${isSameDate(new Date(year, month, day), today) ? "today" : ""}`}
+                  type="button"
+                  key={`${month}-${day}`}
+                  onClick={() => selectDate(day)}
+                >
+                  {day}
+                </button>
+              ) : (
+                <span key={`empty-${index}`} />
+              ),
+            )}
+          </div>
+          <div className="flex items-center justify-between pt-2">
+            <button
+              className="calendar-text-button"
+              type="button"
+              onClick={() => setSelectedDate(null)}
+            >
+              Clear
+            </button>
+            <button className="calendar-text-button" type="button" onClick={selectToday}>
+              Today
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Field({ label, icon, ...props }) {
   return (
     <label className="block space-y-2">
       <span className="label-caps text-on-surface-variant">{label}</span>
       <span className="relative block">
-        <input className="form-field" {...props} />
+        <input className={`form-field ${icon ? "pr-12" : ""}`} {...props} />
         {icon && (
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
             {icon}
           </span>
         )}
@@ -660,21 +914,40 @@ function Field({ label, icon, ...props }) {
 }
 
 function Footer() {
+  const socialLinks = [
+    ["Instagram", "#e4405f"],
+    ["Spotify", "#1db954"],
+    ["SoundCloud", "#ff5500"],
+    ["Apple Music", "#fa57c1"],
+    ["YouTube", "#ff0000"],
+  ];
+
   return (
-    <footer className="border-t border-outline-variant/10 bg-surface-container-lowest py-12">
-      <div className="mx-auto flex max-w-container-max flex-col items-center justify-between gap-8 px-margin-mobile md:flex-row md:px-margin-desktop">
-        <div className="font-syne text-xl font-semibold text-on-surface">
-          Peculiar Beats
+    <footer className="footer-frame">
+      <div className="footer-marquee" aria-hidden="true">
+        <div className="footer-marquee-track">
+          {[0, 1].map((group) => (
+            <span className="footer-marquee-text" key={group}>
+              PECULIAR BEATS
+            </span>
+          ))}
         </div>
-        <div className="flex flex-wrap justify-center gap-6 text-sm text-on-surface-variant">
-          {["Instagram", "YouTube", "SoundCloud", "Mixcloud"].map((item) => (
-            <a href="#" className="transition hover:text-primary" key={item}>
+      </div>
+      <div className="footer-content">
+        <div className="footer-socials">
+          {socialLinks.map(([item, color]) => (
+            <a
+              href="#"
+              className="footer-social-link"
+              style={{ "--social-color": color }}
+              key={item}
+            >
               {item}
             </a>
           ))}
         </div>
-        <div className="text-sm text-on-surface-variant">
-          © 2024 Peculiar Beats. Engineering the Night.
+        <div className="footer-copyright">
+          © 2024 Peculiar Beats. All rights reserved.
         </div>
       </div>
     </footer>
