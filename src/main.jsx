@@ -264,6 +264,7 @@ function Hero() {
         muted
         loop
         playsInline
+        preload="auto"
         poster={images.hero}
         aria-label="Peculiar Beats performance background"
       >
@@ -398,69 +399,149 @@ function Experiences() {
 }
 
 function Media() {
+  const sliderRef = useRef(null);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window === "undefined" ? 1200 : window.innerWidth,
+  );
+
   const selectedVideo = mediaVideos[selectedVideoIndex];
+  const isMobileCarousel = viewportWidth < 820;
+
+  const slidesToShow = isMobileCarousel
+    ? 1
+    : viewportWidth < 1100
+      ? Math.min(mediaVideos.length || 1, 2)
+      : Math.min(mediaVideos.length || 1, 3);
+
+  const settings = {
+    arrows: false,
+    dots: mediaVideos.length > 1,
+    centerMode: isMobileCarousel && mediaVideos.length > 1,
+    centerPadding: isMobileCarousel ? "34px" : "0px",
+    infinite: isMobileCarousel
+      ? mediaVideos.length > 1
+      : mediaVideos.length > slidesToShow,
+    speed: 450,
+    slidesToShow,
+    slidesToScroll: 1,
+  };
+
+  useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth);
+
+    onResize();
+    window.addEventListener("resize", onResize);
+
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   return (
-    <section className="section-shell" id="media">
+    <section className="section-shell overflow-hidden" id="media">
       <div className="visuals-panel">
-        <h2 className="section-title mb-8">Visuals</h2>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-          <div className="min-w-0">
-            <div className="visuals-featured-video">
-              <video
-                key={selectedVideo.src}
-                className="h-full w-full object-cover"
-                controls
-                loop
-                playsInline
-                aria-label={`${selectedVideo.title} video`}
-              >
-                <source src={selectedVideo.src} type="video/mp4" />
-              </video>
-            </div>
-            <div className="mt-5">
-              <span className="label-caps text-primary">Featured Video</span>
-              <h3 className="mt-2 font-syne text-2xl font-bold text-on-surface">
-                {selectedVideo.title}
-              </h3>
-              <p className="body-copy mt-1">{selectedVideo.meta}</p>
-            </div>
+        <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="section-title">Visuals</h2>
+            <p className="body-copy mt-4 max-w-2xl">
+              Browse performance visuals and play directly from here.
+            </p>
           </div>
-          <div className="visuals-playlist" aria-label="Visual playlist">
-            {mediaVideos.map((video, index) => (
+
+          {mediaVideos.length > 1 && (
+            <div className="flex gap-3">
               <button
-                className={`visuals-playlist-item ${
+                className="icon-button"
+                onClick={() => sliderRef.current?.slickPrev()}
+                aria-label="Previous video"
+              >
+                <ArrowLeft size={18} />
+              </button>
+
+              <button
+                className="icon-button"
+                onClick={() => sliderRef.current?.slickNext()}
+                aria-label="Next video"
+              >
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Featured Video */}
+        <div className="bento-card max-w-full overflow-hidden p-3 md:p-4">
+          <div className="aspect-video overflow-hidden rounded-xl bg-black">
+            <video
+              key={selectedVideo.src}
+              className="h-full w-full object-cover"
+              controls
+              playsInline
+              preload="auto"
+              aria-label={`${selectedVideo.title} video`}
+            >
+              <source src={selectedVideo.src} type="video/mp4" />
+            </video>
+          </div>
+
+          <div className="mt-5">
+            <span className="label-caps text-primary">Featured Video</span>
+
+            <h3 className="mt-2 font-syne text-2xl font-bold text-on-surface">
+              {selectedVideo.title}
+            </h3>
+
+            <p className="body-copy mt-1">{selectedVideo.meta}</p>
+          </div>
+        </div>
+
+        {/* Carousel */}
+        <Slider
+          key={`${mediaVideos.length}-${slidesToShow}-${isMobileCarousel}`}
+          ref={sliderRef}
+          {...settings}
+          className="track-slider mt-6"
+        >
+          {mediaVideos.map((video, index) => (
+            <div className="px-2" key={video.src}>
+              <button
+                className={`track-card group text-left ${
                   selectedVideoIndex === index ? "active" : ""
                 }`}
-                type="button"
-                key={video.src}
                 onClick={() => setSelectedVideoIndex(index)}
+                type="button"
               >
-                <span className="visuals-thumb">
+                <span className="relative mb-4 block aspect-video overflow-hidden rounded bg-black">
                   <video
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover opacity-80 transition group-hover:scale-105 group-hover:opacity-100"
                     muted
                     playsInline
-                    preload="metadata"
-                    aria-hidden="true"
+                    preload="auto"
                   >
                     <source src={video.src} type="video/mp4" />
                   </video>
-                  <span className="visuals-play-icon">
-                    <Play size={18} fill="currentColor" />
+
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 transition group-hover:opacity-100">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-container text-black">
+                      <Play size={24} fill="currentColor" />
+                    </span>
                   </span>
                 </span>
-                <span className="label-caps block text-left text-on-surface">
+
+                <span className="label-caps mb-2 block text-primary">
+                  Club Gig
+                </span>
+
+                <span className="block font-syne text-lg font-semibold leading-tight text-on-surface">
                   {video.title}
                 </span>
-                <span className="mt-1 block text-left text-xs text-on-surface-variant">
+
+                <span className="body-copy mt-2 block text-sm">
                   {video.meta}
                 </span>
               </button>
-            ))}
-          </div>
-        </div>
+            </div>
+          ))}
+        </Slider>
       </div>
     </section>
   );
@@ -1193,7 +1274,11 @@ function Field({ label, icon, ...props }) {
 function Footer() {
   const socialLinks = [
     ["Instagram", "#e4405f", "https://www.instagram.com/peculiar_beats/"],
-    ["Whatsapp", "#25D366", "https://wa.me/917619437950?text=Hi%20Peculiar%20Beats,%20I%20want%20to%20book%20you%20for%20an%20event"],
+    [
+      "Whatsapp",
+      "#25D366",
+      "https://wa.me/917619437950?text=Hi%20Peculiar%20Beats,%20I%20want%20to%20book%20you%20for%20an%20event",
+    ],
     ["SoundCloud", "#ff5500", "https://soundcloud.com/peculiar-beats"],
     ["YouTube", "#ff0000", "https://www.youtube.com/@Peculiar_Beats"],
   ];
