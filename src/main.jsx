@@ -40,7 +40,7 @@ const images = {
 
 const stats = [
   ["600+", "Events Performed"],
-  ["25+", "Cities Toured"],
+  ["20+", "Cities Toured"],
   ["100+", "Unique Venues"],
   ["10+", "Genre Versatility"],
 ];
@@ -106,6 +106,7 @@ const navLinks = [
   ["Releases", "#releases"],
   ["Experience", "#experience"],
   ["Bookings", "#booking"],
+  ["Quick Links", "#footer"],
 ];
 
 function Header() {
@@ -735,17 +736,20 @@ function Booking() {
         throw new Error("Telegram is not configured.");
       }
 
-      const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `https://api.telegram.org/bot${botToken}/sendMessage`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: formatBookingMessage(payload).slice(0, 4096),
+            disable_web_page_preview: true,
+          }),
         },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: formatBookingMessage(payload).slice(0, 4096),
-          disable_web_page_preview: true,
-        }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Booking alert failed.");
@@ -771,8 +775,8 @@ function Booking() {
     <section className="booking-section section-shell" id="booking">
       {formStatus === "success" && <ConfettiBurst />}
       <div className="relative mx-auto max-w-5xl overflow-visible px-2 py-8 text-center md:py-14">
-        <span className="booking-kicker">Concierge Services</span>
-        <h2 className="booking-heading">Reserve the Experience</h2>
+        <span className="booking-kicker mb-2">Concierge Services</span>
+        <h2 className="section-title">Reserve the Experience</h2>
         <p className="booking-subtitle">
           Connect with our team to design the sonic landscape for your upcoming
           event.
@@ -832,11 +836,13 @@ function Booking() {
             placeholder={
               formData.contactMethod === "email"
                 ? "you@example.com"
-                : "+91 98765 43210"
+                : "+00 00000 00000"
             }
             type={formData.contactMethod === "email" ? "email" : "tel"}
             value={formData.contactValue}
-            onChange={(event) => updateField("contactValue", event.target.value)}
+            onChange={(event) =>
+              updateField("contactValue", event.target.value)
+            }
           />
           <label className="block space-y-2">
             <span className="label-caps text-on-surface-variant">
@@ -854,7 +860,9 @@ function Booking() {
           {formMessage && (
             <p
               className={`text-center text-sm font-semibold ${
-                formStatus === "success" ? "text-primary-container" : "text-primary"
+                formStatus === "success"
+                  ? "text-primary-container"
+                  : "text-primary"
               }`}
               role="status"
             >
@@ -1081,7 +1089,11 @@ function DateField({ label, value, onChange }) {
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
-        <span className={selectedDate ? "text-on-surface" : "text-on-surface-variant/60"}>
+        <span
+          className={
+            selectedDate ? "text-on-surface" : "text-on-surface-variant/60"
+          }
+        >
           {value || "mm/dd/yyyy"}
         </span>
         <Calendar className="shrink-0 text-on-surface-variant" size={18} />
@@ -1180,15 +1192,14 @@ function Field({ label, icon, ...props }) {
 
 function Footer() {
   const socialLinks = [
-    ["Instagram", "#e4405f"],
-    ["Spotify", "#1db954"],
-    ["SoundCloud", "#ff5500"],
-    ["Apple Music", "#fa57c1"],
-    ["YouTube", "#ff0000"],
+    ["Instagram", "#e4405f", "https://www.instagram.com/peculiar_beats/"],
+    ["Whatsapp", "#25D366", "https://wa.me/917619437950?text=Hi%20Peculiar%20Beats,%20I%20want%20to%20book%20you%20for%20an%20event"],
+    ["SoundCloud", "#ff5500", "https://soundcloud.com/peculiar-beats"],
+    ["YouTube", "#ff0000", "https://www.youtube.com/@Peculiar_Beats"],
   ];
 
   return (
-    <footer className="footer-frame">
+    <footer className="footer-frame" id="footer">
       <div className="footer-marquee" aria-hidden="true">
         <div className="footer-marquee-track">
           {[0, 1].map((group) => (
@@ -1200,19 +1211,20 @@ function Footer() {
       </div>
       <div className="footer-content">
         <div className="footer-socials">
-          {socialLinks.map(([item, color]) => (
+          {socialLinks.map(([item, color, link]) => (
             <a
-              href="#"
+              href={link}
               className="footer-social-link"
               style={{ "--social-color": color }}
               key={item}
+              target="_blank"
             >
               {item}
             </a>
           ))}
         </div>
         <div className="footer-copyright">
-          © 2024 Peculiar Beats. All rights reserved.
+          ©2026 Peculiar Beats. All rights reserved.
         </div>
       </div>
     </footer>
