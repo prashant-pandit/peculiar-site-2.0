@@ -774,7 +774,7 @@ section[id] {
 
 @media (max-width: 640px) {
   .hero-title {
-    font-size: clamp(2.5rem, 4vw, 4.4rem);
+    font-size: clamp(1.5rem, 4vw, 4.4rem);
   }
 
   section[id] {

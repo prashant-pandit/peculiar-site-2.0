@@ -166,7 +166,7 @@ function Header() {
         >
           <img
             src={images.logo_w}
-            alt={"peculiar beats logo"}
+            alt="Peculiar Beats DJ logo"
             className="w-[210px]"
           />
         </a>
@@ -273,7 +273,7 @@ function Hero() {
       <div className="absolute inset-0 bg-background/80" />
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center text-center">
         <h1 className="hero-title font-syne font-extrabold text-on-surface">
-          Unique music. Limitless energy. One mission — keep the dance floor
+          Unique music. Limitless energy.<br/><br/>One mission — keep the dance floor
           alive.
         </h1>
         <MusicStringWave />
@@ -340,7 +340,7 @@ function Intro() {
           <div className="group relative aspect-[4/5] overflow-hidden rounded-lg bg-surface-container">
             <img
               src={images.portrait}
-              alt="DJ performing at a high-end club"
+              alt="Peculiar Beats DJ performing at a club event in Karnataka"
               className="h-full w-full object-cover grayscale transition duration-700 group-hover:grayscale-0"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60" />
@@ -1303,6 +1303,8 @@ function Footer() {
               style={{ "--social-color": color }}
               key={item}
               target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Follow Peculiar Beats on ${item}`}
             >
               {item}
             </a>

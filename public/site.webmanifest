@@ -1,0 +1,16 @@
+{
+  "name": "Peculiar Beats",
+  "short_name": "Peculiar Beats",
+  "description": "DJ in Belagavi for weddings, clubs, corporate events and private parties.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#19101c",
+  "theme_color": "#19101c",
+  "icons": [
+    {
+      "src": "/images/logo.png",
+      "sizes": "500x500",
+      "type": "image/png"
+    }
+  ]
+}
