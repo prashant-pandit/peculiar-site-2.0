@@ -11,9 +11,16 @@ import {
   ChevronRight,
   Menu,
   Moon,
+  Pause,
   Play,
   Sparkles,
 } from "lucide-react";
+import {
+  FaInstagram,
+  FaSoundcloud,
+  FaWhatsapp,
+  FaYoutube,
+} from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./styles.css";
@@ -24,6 +31,9 @@ const images = {
   media1: "/videos/media1.mp4",
   media2: "/videos/media2.mp4",
   media3: "/videos/media3.mp4",
+  media1Thumb: "/images/media-thumbs/media1.webp",
+  media2Thumb: "/images/media-thumbs/media2.webp",
+  media3Thumb: "/images/media-thumbs/media3.webp",
   hero: "https://lh3.googleusercontent.com/aida-public/AB6AXuAqKzu1AparutUahKdpYJLTQ4oh3_erCH8JN2NViVp-3DGP3vv8dg_4h9f9qK9AQEkoG2tO6m69Eg0OG0jW4G21KwCtHY4D4sw3q4lUBmce67dwHBmtBlpWWFaJQLgA_CXNeZzXaKq443NmMJGYb3y16_Er9buhu55779O3IEgLhGifDAFiNkBVSGXRy_lUTN45dDjG3SCuyodo5AtzPqa2Ow7znr_HzWIZIJUCSKWFWiO-pYRjEuQE1PM-ZoPfvN-_nA9vF1YgKJEo",
   portrait: "/images/profile.JPEG",
   festival:
@@ -48,16 +58,19 @@ const stats = [
 const experiences = [
   {
     icon: Moon,
+    tone: "nightlife",
     title: "Club & Nightlife",
     copy: "Electrifying sets built for packed dance floors. From Bollywood bangers to Techno and commercial anthems, every transition is designed to keep the crowd moving all night long.",
   },
   {
     icon: Building2,
+    tone: "gala",
     title: "Corporate Galas",
     copy: "Professional yet energetic musical experiences tailored for corporate events, private parties, launches, and celebrations — creating the perfect atmosphere from start to finish.",
   },
   {
     icon: Sparkles,
+    tone: "wedding",
     title: "Luxury Weddings",
     copy: "From elegant entries to unforgettable dance-floor moments, curated music experiences that blend timeless favorites with high-energy celebrations for every generation.",
   },
@@ -68,16 +81,19 @@ const mediaVideos = [
     title: "Club Gig",
     meta: "Live performance footage",
     src: images.media1,
+    thumbnail: images.media1Thumb,
   },
   {
     title: "College Fest",
     meta: "Crowd energy highlights",
     src: images.media3,
+    thumbnail: images.media3Thumb,
   },
   {
     title: "After Hours Set",
     meta: "Club night recap",
     src: images.media2,
+    thumbnail: images.media2Thumb,
   },
 ];
 
@@ -264,7 +280,7 @@ function Hero() {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="none"
         poster={images.hero}
         aria-label="Peculiar Beats performance background"
       >
@@ -323,6 +339,7 @@ function Partners() {
                 src={src}
                 alt={`${name} logo`}
                 className="partner-logo"
+                loading="lazy"
               />
             ))}
           </div>
@@ -342,6 +359,7 @@ function Intro() {
               src={images.portrait}
               alt="Peculiar Beats DJ performing at a club event in Karnataka"
               className="h-full w-full object-cover grayscale transition duration-700 group-hover:grayscale-0"
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60" />
           </div>
@@ -355,16 +373,16 @@ function Intro() {
           </div>
           <h2 className="section-title max-w-3xl">INTRO</h2>
           <p className="body-copy mt-6 max-w-2xl text-lg">
-            Yo! I’m Peculiar Beats — the DJ who turns every event into a
-            full-blown vibe. Whether it’s Bollywood hits, Techno grooves, or
+            Yo! I'm Peculiar Beats — the DJ who turns every event into a
+            full-blown vibe. Whether it's Bollywood hits, Techno grooves, or
             Regional fire, I mix it all with a twist that keeps people locked to
-            the dancefloor. I’ve rocked 600+ events across multiple states and
+            the dancefloor. I've rocked 600+ events across multiple states and
             cities, and 100+ venues — from weddings and clubs to big concerts
             with celeb DJs. My goal? Simple. Keep the floor packed, and the
             energy unmatched.
           </p>
           <p className="body-copy mt-5 max-w-2xl">
-            Weddings, club nights, house parties, or corporate shows — I’ve done
+            Weddings, club nights, house parties, or corporate shows — I've done
             it all, and I bring the vibe every time. From throwback Bollywood to
             techno heaters and my signature Bollytech mashups, I build each set
             to match the crowd, the mood, and the moment. No copy-paste
@@ -382,9 +400,9 @@ function Experiences() {
     <section className="section-shell" id="experience">
       <h2 className="section-title mb-10">Events & Experiences</h2>
       <div className="grid grid-cols-1 gap-gutter md:grid-cols-3">
-        {experiences.map(({ icon: Icon, title, copy }) => (
-          <article key={title} className="bento-card p-8">
-            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-surface-container text-primary">
+        {experiences.map(({ icon: Icon, tone, title, copy }) => (
+          <article key={title} className={`bento-card experience-card experience-card-${tone} p-8`}>
+            <div className="experience-card-icon mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-surface-container text-primary">
               <Icon size={22} />
             </div>
             <h3 className="font-syne text-2xl font-semibold text-on-surface">
@@ -400,7 +418,10 @@ function Experiences() {
 
 function Media() {
   const sliderRef = useRef(null);
+  const featuredVideoRef = useRef(null);
+  const featuredVideoPlayerRef = useRef(null);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+  const [isFeaturedVideoPlaying, setIsFeaturedVideoPlaying] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(
     typeof window === "undefined" ? 1200 : window.innerWidth,
   );
@@ -413,15 +434,14 @@ function Media() {
     : viewportWidth < 1100
       ? Math.min(mediaVideos.length || 1, 2)
       : Math.min(mediaVideos.length || 1, 3);
+  const canSlide = mediaVideos.length > slidesToShow;
 
   const settings = {
     arrows: false,
-    dots: mediaVideos.length > 1,
+    dots: canSlide,
     centerMode: isMobileCarousel && mediaVideos.length > 1,
     centerPadding: isMobileCarousel ? "34px" : "0px",
-    infinite: isMobileCarousel
-      ? mediaVideos.length > 1
-      : mediaVideos.length > slidesToShow,
+    infinite: canSlide,
     speed: 450,
     slidesToShow,
     slidesToScroll: 1,
@@ -435,6 +455,40 @@ function Media() {
 
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  const handleSelectVideo = (index) => {
+    setSelectedVideoIndex(index);
+    setIsFeaturedVideoPlaying(false);
+    requestAnimationFrame(() => {
+      const playerTop = featuredVideoRef.current?.getBoundingClientRect().top;
+
+      if (playerTop == null) {
+        return;
+      }
+
+      const headerOffset = window.innerWidth < 768 ? 96 : 120;
+
+      window.scrollTo({
+        top: window.scrollY + playerTop - headerOffset,
+        behavior: "smooth",
+      });
+    });
+  };
+
+  const handleFeaturedVideoClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const videoElement = featuredVideoPlayerRef.current;
+    if (!videoElement) return;
+
+    if (videoElement.paused) {
+      void videoElement.play().catch(() => {});
+      return;
+    }
+
+    videoElement.pause();
+  };
 
   return (
     <section className="section-shell overflow-hidden" id="media">
@@ -468,38 +522,12 @@ function Media() {
           )}
         </div>
 
-        {/* Featured Video */}
-        <div className="bento-card max-w-full overflow-hidden p-3 md:p-4">
-          <div className="aspect-video overflow-hidden rounded-xl bg-black">
-            <video
-              key={selectedVideo.src}
-              className="h-full w-full object-cover"
-              controls
-              playsInline
-              preload="auto"
-              aria-label={`${selectedVideo.title} video`}
-            >
-              <source src={selectedVideo.src} type="video/mp4" />
-            </video>
-          </div>
-
-          <div className="mt-5">
-            <span className="label-caps text-primary">Featured Video</span>
-
-            <h3 className="mt-2 font-syne text-2xl font-bold text-on-surface">
-              {selectedVideo.title}
-            </h3>
-
-            <p className="body-copy mt-1">{selectedVideo.meta}</p>
-          </div>
-        </div>
-
         {/* Carousel */}
         <Slider
           key={`${mediaVideos.length}-${slidesToShow}-${isMobileCarousel}`}
           ref={sliderRef}
           {...settings}
-          className="track-slider mt-6"
+          className="track-slider"
         >
           {mediaVideos.map((video, index) => (
             <div className="px-2" key={video.src}>
@@ -507,7 +535,7 @@ function Media() {
                 className={`track-card group text-left ${
                   selectedVideoIndex === index ? "active" : ""
                 }`}
-                onClick={() => setSelectedVideoIndex(index)}
+                onClick={() => handleSelectVideo(index)}
                 type="button"
               >
                 <span className="relative mb-4 block aspect-video overflow-hidden rounded bg-black">
@@ -515,7 +543,8 @@ function Media() {
                     className="h-full w-full object-cover opacity-80 transition group-hover:scale-105 group-hover:opacity-100"
                     muted
                     playsInline
-                    preload="auto"
+                    preload="none"
+                    poster={video.thumbnail}
                   >
                     <source src={video.src} type="video/mp4" />
                   </video>
@@ -542,6 +571,51 @@ function Media() {
             </div>
           ))}
         </Slider>
+
+        {/* Featured Video */}
+        <div
+          className="bento-card mt-6 max-w-full overflow-hidden p-3 md:p-4"
+          ref={featuredVideoRef}
+        >
+          <div className="relative aspect-video overflow-hidden rounded-xl bg-black">
+            <video
+              key={selectedVideo.src}
+              className="h-full w-full object-cover"
+              controls
+              playsInline
+              preload="none"
+              poster={selectedVideo.thumbnail}
+              aria-label={`${selectedVideo.title} video`}
+              ref={featuredVideoPlayerRef}
+              onClick={handleFeaturedVideoClick}
+              onPlay={() => setIsFeaturedVideoPlaying(true)}
+              onPause={() => setIsFeaturedVideoPlaying(false)}
+              onEnded={() => setIsFeaturedVideoPlaying(false)}
+            >
+              <source src={selectedVideo.src} type="video/mp4" />
+            </video>
+
+            <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white shadow-lg">
+                {isFeaturedVideoPlaying ? (
+                  <Pause size={18} fill="currentColor" />
+                ) : (
+                  <Play size={18} fill="currentColor" />
+                )}
+              </span>
+            </span>
+          </div>
+
+          <div className="mt-5">
+            <span className="label-caps text-primary">Featured Video</span>
+
+            <h3 className="mt-2 font-syne text-2xl font-bold text-on-surface">
+              {selectedVideo.title}
+            </h3>
+
+            <p className="body-copy mt-1">{selectedVideo.meta}</p>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -562,17 +636,16 @@ function Releases() {
     : viewportWidth < 1100
       ? Math.min(tracks.length || 1, 2)
       : Math.min(tracks.length || 1, 3);
+  const canSlide = tracks.length > slidesToShow;
   const embedUrl = selectedVideoId
     ? `https://www.youtube.com/embed/${selectedVideoId}?list=${youtubePlaylist.id}&rel=0&modestbranding=1`
     : `https://www.youtube.com/embed/videoseries?list=${youtubePlaylist.id}&rel=0&modestbranding=1`;
   const settings = {
     arrows: false,
-    dots: tracks.length > 1,
+    dots: canSlide,
     centerMode: isMobileCarousel && tracks.length > 1,
     centerPadding: isMobileCarousel ? "34px" : "0px",
-    infinite: isMobileCarousel
-      ? tracks.length > 1
-      : tracks.length > slidesToShow,
+    infinite: canSlide,
     speed: 450,
     slidesToShow,
     slidesToScroll: 1,
@@ -700,6 +773,7 @@ function Releases() {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
             loading="lazy"
+            decoding="async"
           />
         </div>
       </div>
@@ -722,6 +796,7 @@ function Releases() {
                     src={track.thumbnail}
                     alt={`${track.title} thumbnail`}
                     className="h-full w-full object-cover opacity-80 transition group-hover:scale-105 group-hover:opacity-100"
+                    loading="lazy"
                   />
                   <span className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 transition group-hover:opacity-100">
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-container text-black">
@@ -1273,14 +1348,30 @@ function Field({ label, icon, ...props }) {
 
 function Footer() {
   const socialLinks = [
-    ["Instagram", "#e4405f", "https://www.instagram.com/peculiar_beats/"],
-    [
-      "Whatsapp",
-      "#25D366",
-      "https://wa.me/917619437950?text=Hi%20Peculiar%20Beats,%20I%20want%20to%20book%20you%20for%20an%20event",
-    ],
-    ["SoundCloud", "#ff5500", "https://soundcloud.com/peculiar-beats"],
-    ["YouTube", "#ff0000", "https://www.youtube.com/@Peculiar_Beats"],
+    {
+      name: "Instagram",
+      color: "#e4405f",
+      link: "https://www.instagram.com/peculiar_beats/",
+      icon: FaInstagram,
+    },
+    {
+      name: "Whatsapp",
+      color: "#25D366",
+      link: "https://wa.me/917619437950?text=Hi%20Peculiar%20Beats,%20I%20want%20to%20book%20you%20for%20an%20event",
+      icon: FaWhatsapp,
+    },
+    {
+      name: "SoundCloud",
+      color: "#ff5500",
+      link: "https://soundcloud.com/peculiar-beats",
+      icon: FaSoundcloud,
+    },
+    {
+      name: "YouTube",
+      color: "#ff0000",
+      link: "https://www.youtube.com/@Peculiar_Beats",
+      icon: FaYoutube,
+    },
   ];
 
   return (
@@ -1296,17 +1387,20 @@ function Footer() {
       </div>
       <div className="footer-content">
         <div className="footer-socials">
-          {socialLinks.map(([item, color, link]) => (
+          {socialLinks.map(({ name, color, link, icon: Icon }) => (
             <a
               href={link}
               className="footer-social-link"
               style={{ "--social-color": color }}
-              key={item}
+              key={name}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`Follow Peculiar Beats on ${item}`}
+              aria-label={`Follow Peculiar Beats on ${name}`}
             >
-              {item}
+              <span className="footer-social-icon" aria-hidden="true">
+                <Icon size={15} />
+              </span>
+              {name}
             </a>
           ))}
         </div>
@@ -1318,11 +1412,171 @@ function Footer() {
   );
 }
 
+function AnimatedWaveBackground() {
+  const offsets = Array.from({ length: 30 }, (_, index) => index * 1.9 - 28);
+  const particles = [
+    { left: "9%", size: "3px", delay: "0s", duration: "10.5s", drift: "28px" },
+    { left: "22%", size: "4px", delay: "1.6s", duration: "11.8s", drift: "34px" },
+    { left: "37%", size: "3px", delay: "0.9s", duration: "9.8s", drift: "24px" },
+    { left: "52%", size: "5px", delay: "2.3s", duration: "12.6s", drift: "38px" },
+    { left: "68%", size: "3px", delay: "1.1s", duration: "10.2s", drift: "26px" },
+    { left: "81%", size: "4px", delay: "2.9s", duration: "11.4s", drift: "32px" },
+    { left: "92%", size: "3px", delay: "1.8s", duration: "10.8s", drift: "22px" },
+  ];
+
+  return (
+    <div className="animated-wave-bg" aria-hidden="true">
+      <div className="synthwave-fade" />
+      <div className="synthwave-pixels">
+        {particles.map((particle, index) => (
+          <span
+            className="synthwave-pixel"
+            key={`${particle.left}-${index}`}
+            style={{
+              "--pixel-left": particle.left,
+              "--pixel-size": particle.size,
+              "--pixel-delay": particle.delay,
+              "--pixel-duration": particle.duration,
+              "--pixel-drift": particle.drift,
+            }}
+          />
+        ))}
+      </div>
+      <svg
+        className="synthwave-wave-svg"
+        viewBox="0 0 1440 320"
+        preserveAspectRatio="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient id="waveCyan" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#1a5fff" stopOpacity="0.08" />
+            <stop offset="18%" stopColor="#2d7dff" stopOpacity="0.55" />
+            <stop offset="50%" stopColor="#7b2dff" stopOpacity="0.5" />
+            <stop offset="82%" stopColor="#2d7dff" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#1a5fff" stopOpacity="0.08" />
+          </linearGradient>
+          <linearGradient id="wavePink" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ff00bf" stopOpacity="0.08" />
+            <stop offset="35%" stopColor="#ff37d0" stopOpacity="0.5" />
+            <stop offset="65%" stopColor="#b100ff" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#ff00bf" stopOpacity="0.08" />
+          </linearGradient>
+          <filter id="waveGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <radialGradient id="waveHotspot" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#ff4fd8" stopOpacity="0.95" />
+            <stop offset="38%" stopColor="#8f3bff" stopOpacity="0.42" />
+            <stop offset="75%" stopColor="#00d9ff" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#00d9ff" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
+        <ellipse
+          className="synthwave-hotspot"
+          cx="720"
+          cy="188"
+          rx="174"
+          ry="70"
+          fill="url(#waveHotspot)"
+        />
+
+        <g className="synthwave-ribbon synthwave-ribbon-cyan">
+          {offsets.map((offset) => (
+            <path
+              key={`cyan-${offset}`}
+              className="synthwave-line"
+              d="M-40,196 C76,162 168,118 278,162 C392,208 492,250 612,196 C738,136 848,102 968,152 C1092,206 1194,244 1308,190 C1380,156 1438,142 1480,148"
+              style={{ transform: `translateY(${offset}px)` }}
+            />
+          ))}
+        </g>
+
+        <g className="synthwave-ribbon synthwave-ribbon-pink">
+          {offsets.map((offset) => (
+            <path
+              key={`pink-${offset}`}
+              className="synthwave-line"
+              d="M-40,202 C88,224 186,248 304,198 C420,150 530,116 648,166 C772,220 884,246 1002,198 C1128,146 1238,112 1360,164 C1410,186 1450,194 1480,192"
+              style={{ transform: `translateY(${offset * 0.8}px)` }}
+            />
+          ))}
+        </g>
+
+        <g className="synthwave-ribbon synthwave-ribbon-blue">
+          {offsets.map((offset) => (
+            <path
+              key={`blue-${offset}`}
+              className="synthwave-line synthwave-line-thin"
+              d="M-40,206 C64,186 164,164 286,184 C420,206 534,234 662,194 C782,156 896,136 1016,174 C1144,214 1266,228 1386,196 C1422,186 1452,182 1480,184"
+              style={{ transform: `translateY(${offset * 0.62}px)` }}
+            />
+          ))}
+        </g>
+
+        <g className="synthwave-core">
+          <path
+            className="synthwave-core-line synthwave-core-line-cyan"
+            d="M-40,198 C84,168 182,134 302,176 C422,218 534,244 654,188 C780,128 890,108 1012,160 C1130,210 1242,236 1356,186 C1410,162 1454,152 1480,156"
+          />
+          <path
+            className="synthwave-core-line synthwave-core-line-pink"
+            d="M-40,204 C96,228 198,242 320,190 C434,142 544,120 664,170 C790,222 902,248 1024,194 C1144,142 1258,118 1378,170 C1424,190 1458,196 1480,194"
+          />
+          <path
+            className="synthwave-beat-travel"
+            d="M-40,201 C92,186 198,154 314,182 C438,212 548,222 668,180 C790,138 902,140 1026,182 C1144,222 1260,214 1378,184 C1424,172 1458,170 1480,174"
+          />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 function App() {
+  const [ambientTheme, setAmbientTheme] = useState("default");
+
+  useEffect(() => {
+    const themedSections = [
+      ["#media", "media"],
+      ["#releases", "releases"],
+      ["#experience", "experience"],
+      ["#booking", "booking"],
+    ];
+
+    const updateAmbientTheme = () => {
+      const checkpoint = window.innerHeight * 0.42;
+      const activeSection = themedSections.find(([selector]) => {
+        const section = document.querySelector(selector);
+        if (!section) return false;
+
+        const bounds = section.getBoundingClientRect();
+        return bounds.top <= checkpoint && bounds.bottom > checkpoint;
+      });
+
+      setAmbientTheme(activeSection?.[1] || "default");
+    };
+
+    updateAmbientTheme();
+    window.addEventListener("scroll", updateAmbientTheme, { passive: true });
+    window.addEventListener("resize", updateAmbientTheme);
+
+    return () => {
+      window.removeEventListener("scroll", updateAmbientTheme);
+      window.removeEventListener("resize", updateAmbientTheme);
+    };
+  }, []);
+
   return (
     <>
+      <AnimatedWaveBackground />
       <Header />
-      <main>
+      <main className={`ambient-theme-${ambientTheme}`}>
         <Hero />
         <Stats />
         <Partners />
