@@ -576,7 +576,7 @@ footer {
   }
 
   .section-shell {
-    @apply mx-auto mb-32 max-w-container-max px-margin-mobile md:px-margin-desktop;
+    @apply mx-auto mb-0 max-w-container-max px-margin-mobile md:px-margin-desktop;
     --section-top-glow: rgba(255, 0, 191, 0.08);
     --section-top-accent: rgba(0, 255, 255, 0.04);
     --section-bottom-glow: rgba(0, 255, 255, 0.04);
@@ -1306,6 +1306,7 @@ section[id] {
   --section-bottom-accent: rgba(255, 170, 0, 0.04);
   --section-top-focus: 32%;
   --section-bottom-focus: 68%;
+  padding-top: clamp(1.1rem, 2.8vw, 2rem);
   background:
     radial-gradient(circle at 18% 0%, rgba(255, 170, 0, 0.045), transparent 28%),
     radial-gradient(circle at 82% 14%, rgba(255, 0, 191, 0.035), transparent 24%),
@@ -1726,7 +1727,7 @@ section[id] {
   }
 
   .section-shell {
-    margin-bottom: 3.75rem;
+    margin-bottom: 0;
     padding-top: 1.55rem;
     padding-bottom: 1.85rem;
     border-radius: 0;

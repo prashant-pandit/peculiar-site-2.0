@@ -10,12 +10,16 @@
     />
     <meta name="keywords" content="famous DJ in Belagavi, famous DJ in Belgaum, best DJ in Belagavi, best DJ in Belgaum, popular DJ in Belgaum, Karnataka DJ, wedding DJ Belagavi, corporate event DJ Karnataka, club DJ Belgaum, party DJ Belagavi, DJ for weddings, DJ for corporate events, Peculiar Beats" />
     <meta name="author" content="Peculiar Beats" />
+    <meta name="application-name" content="Peculiar Beats" />
+    <meta name="apple-mobile-web-app-title" content="Peculiar Beats" />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <meta name="theme-color" content="#19101c" />
     <meta name="geo.region" content="IN-KA" />
     <meta name="geo.placename" content="Belagavi, Karnataka" />
     <link rel="canonical" href="https://peculiarbeats.com/" />
+    <link rel="alternate" href="https://peculiarbeats.com/" hreflang="en-IN" />
+    <link rel="alternate" href="https://peculiarbeats.com/" hreflang="x-default" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Peculiar Beats" />
@@ -30,8 +34,14 @@
       content="High-energy DJ performances for weddings, clubs, corporate events, festivals and private parties. Available for events across India."
     />
     <meta property="og:image" content="https://peculiarbeats.com/images/profile.JPEG" />
+    <meta property="og:image:secure_url" content="https://peculiarbeats.com/images/profile.JPEG" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="1200" />
     <meta property="og:image:alt" content="Peculiar Beats performing at a live event" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@peculiar_beats" />
+    <meta name="twitter:creator" content="@peculiar_beats" />
     <meta
       name="twitter:title"
       content="Peculiar Beats | Popular DJ for Clubs, Weddings & Corporate Events"
@@ -59,7 +69,21 @@
             "url": "https://peculiarbeats.com/",
             "name": "Peculiar Beats",
             "description": "DJ performances for weddings, clubs, corporate events, festivals and private parties across India.",
-            "inLanguage": "en-IN"
+            "inLanguage": "en-IN",
+            "publisher": { "@id": "https://peculiarbeats.com/#peculiar-beats" }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://peculiarbeats.com/#webpage",
+            "url": "https://peculiarbeats.com/",
+            "name": "Peculiar Beats | Popular DJ for Clubs, Weddings & Corporate Events",
+            "isPartOf": { "@id": "https://peculiarbeats.com/#website" },
+            "about": { "@id": "https://peculiarbeats.com/#peculiar-beats" },
+            "inLanguage": "en-IN",
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "https://peculiarbeats.com/images/profile.JPEG"
+            }
           },
           {
             "@type": ["ProfessionalService", "PerformingGroup"],
@@ -78,11 +102,33 @@
               "addressCountry": "IN"
             },
             "areaServed": { "@type": "Country", "name": "India" },
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "DJ Services",
+              "itemListElement": [
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Wedding DJ" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Corporate Event DJ" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Club DJ" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Private Party DJ" } }
+              ]
+            },
             "knowsAbout": ["Wedding DJ", "Corporate Event DJ", "Club DJ", "Bollywood music", "Techno music", "Private party entertainment"],
             "sameAs": [
               "https://www.instagram.com/peculiar_beats/",
               "https://soundcloud.com/peculiar-beats",
               "https://www.youtube.com/@Peculiar_Beats"
+            ]
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://peculiarbeats.com/#breadcrumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://peculiarbeats.com/"
+              }
             ]
           }
         ]
