@@ -1,6 +1,6 @@
 # Peculiar Site 2.0
 
-A web project built with JavaScript, HTML, and CSS.
+DJ Site!!!! 
 
 ## Overview
 
@@ -53,18 +53,3 @@ To work on this project:
 2. Test in your browser to see the changes live
 3. Commit and push your changes to a feature branch
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature suggestions.
-
-## License
-
-This project is open source and available under the MIT License.
-
-## Contact
-
-For questions or suggestions, please reach out to [prashant-pandit](https://github.com/prashant-pandit).
-
----
-
-**Happy coding!** 🚀
