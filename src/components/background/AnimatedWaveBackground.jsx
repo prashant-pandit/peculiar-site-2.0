@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function AnimatedWaveBackground() {
-  const offsets = Array.from({ length: 30 }, (_, index) => index * 1.9 - 28);
+  const offsets = Array.from({ length: 18 }, (_, index) => index * 3.2 - 27);
   const particles = [
     { left: "9%", size: "3px", delay: "0s", duration: "10.5s", drift: "28px" },
     { left: "22%", size: "4px", delay: "1.6s", duration: "11.8s", drift: "34px" },

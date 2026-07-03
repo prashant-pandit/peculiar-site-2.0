@@ -50,6 +50,11 @@ body::before {
   color: #000;
 }
 
+.render-deferred {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 720px;
+}
+
 /* Animated Wave Background */
 .animated-wave-bg {
   position: fixed;
@@ -406,6 +411,11 @@ body::before {
     transform-origin: center bottom;
   }
 
+  .synthwave-hotspot,
+  .synthwave-ribbon {
+    filter: none;
+  }
+
   .section-shell {
     padding-top: 1.8rem;
     padding-bottom: 2.1rem;
@@ -416,6 +426,16 @@ body::before {
     padding-top: 2rem;
     padding-bottom: 2.2rem;
     border-radius: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .synthwave-hotspot,
+  .synthwave-pixel,
+  .synthwave-ribbon,
+  .synthwave-beat-travel,
+  .music-string {
+    animation: none !important;
   }
 }
 

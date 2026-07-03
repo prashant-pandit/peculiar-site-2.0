@@ -4,7 +4,7 @@ import { experiences } from "../../constants";
 
 export default function ExperiencesSection() {
   return (
-    <section className="section-shell" id="experience">
+    <section className="render-deferred section-shell" id="experience">
       <h2 className="section-title mb-10 flex items-center gap-3">
         <Sparkles size={30} className="text-primary" aria-hidden="true" />
         Events & Experiences

@@ -105,7 +105,7 @@ export default function BookingSection() {
   };
 
   return (
-    <section className="booking-section section-shell" id="booking">
+    <section className="booking-section render-deferred section-shell" id="booking">
       {formStatus === "success" && <ConfettiBurst />}
       <div className="relative mx-auto max-w-5xl overflow-visible px-2 py-5 text-center md:py-8">
         <span className="booking-kicker mb-2">Concierge Services</span>
