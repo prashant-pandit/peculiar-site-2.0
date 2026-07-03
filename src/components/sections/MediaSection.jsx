@@ -68,7 +68,7 @@ export default function MediaSection() {
   };
 
   return (
-    <section className="render-deferred section-shell overflow-hidden" id="media">
+    <section className="section-shell overflow-hidden" id="media">
       <div className="visuals-panel">
         <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>

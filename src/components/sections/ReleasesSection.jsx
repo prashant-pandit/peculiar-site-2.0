@@ -103,7 +103,7 @@ export default function ReleasesSection() {
 
   return (
     <section
-      className="render-deferred mx-auto mb-0 w-full max-w-container-max overflow-hidden px-margin-mobile md:px-margin-desktop"
+      className="mx-auto mb-0 w-full max-w-container-max overflow-hidden px-margin-mobile md:px-margin-desktop"
       id="releases"
       ref={sectionRef}
     >

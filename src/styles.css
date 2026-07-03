@@ -50,11 +50,6 @@ body::before {
   color: #000;
 }
 
-.render-deferred {
-  content-visibility: auto;
-  contain-intrinsic-block-size: auto 720px;
-}
-
 /* Animated Wave Background */
 .animated-wave-bg {
   position: fixed;

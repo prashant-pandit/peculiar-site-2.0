@@ -4,7 +4,7 @@ import { images } from "../../constants";
 
 export default function IntroSection() {
   return (
-    <section className="render-deferred section-shell">
+    <section className="section-shell">
       <div className="grid grid-cols-1 gap-gutter md:grid-cols-12">
         <div className="md:col-span-5">
           <div className="group relative aspect-[4/5] overflow-hidden rounded-lg bg-surface-container">
