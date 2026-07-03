@@ -4,7 +4,7 @@ import { images } from "../../constants";
 
 export default function IntroSection() {
   return (
-    <section className="section-shell">
+    <section className="render-deferred section-shell">
       <div className="grid grid-cols-1 gap-gutter md:grid-cols-12">
         <div className="md:col-span-5">
           <div className="group relative aspect-[4/5] overflow-hidden rounded-lg bg-surface-container">
@@ -13,6 +13,7 @@ export default function IntroSection() {
               alt="Peculiar Beats DJ performing at a club event in Karnataka"
               className="h-full w-full object-cover grayscale transition duration-700 group-hover:grayscale-0"
               loading="lazy"
+              decoding="async"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60" />
           </div>

@@ -2,14 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import Slider from "react-slick";
 import { ArrowLeft, ArrowRight, Disc3, Play } from "lucide-react";
 import { youtubePlaylist } from "../../constants";
-import { useViewportWidth } from "../../hooks";
+import { useNearViewport, useViewportWidth } from "../../hooks";
 
 export default function ReleasesSection() {
+  const sectionRef = useRef(null);
   const sliderRef = useRef(null);
   const [tracks, setTracks] = useState([]);
   const [selectedVideoId, setSelectedVideoId] = useState("");
-  const [playlistStatus, setPlaylistStatus] = useState("loading");
+  const [playlistStatus, setPlaylistStatus] = useState("idle");
   const viewportWidth = useViewportWidth();
+  const shouldLoadPlaylist = useNearViewport(sectionRef);
   const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
   const isMobileCarousel = viewportWidth < 820;
   const slidesToShow = isMobileCarousel
@@ -33,11 +35,14 @@ export default function ReleasesSection() {
   };
 
   useEffect(() => {
+    if (!shouldLoadPlaylist) return;
+
     if (!apiKey) {
       setPlaylistStatus("missing-key");
       return;
     }
 
+    setPlaylistStatus("loading");
     const controller = new AbortController();
     const playlistUrl = new URL(
       "https://www.googleapis.com/youtube/v3/playlistItems",
@@ -94,12 +99,13 @@ export default function ReleasesSection() {
 
     loadPlaylist();
     return () => controller.abort();
-  }, [apiKey]);
+  }, [apiKey, shouldLoadPlaylist]);
 
   return (
     <section
-      className="mx-auto mb-0 w-full max-w-container-max overflow-hidden px-margin-mobile md:px-margin-desktop"
+      className="render-deferred mx-auto mb-0 w-full max-w-container-max overflow-hidden px-margin-mobile md:px-margin-desktop"
       id="releases"
+      ref={sectionRef}
     >
       <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
@@ -145,7 +151,7 @@ export default function ReleasesSection() {
         <div className="aspect-video overflow-hidden rounded bg-black">
           <iframe
             className="h-full w-full"
-            src={embedUrl}
+            src={shouldLoadPlaylist ? embedUrl : undefined}
             title="Peculiar Beats YouTube playlist"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
@@ -174,6 +180,7 @@ export default function ReleasesSection() {
                     alt={`${track.title} thumbnail`}
                     className="h-full w-full object-cover opacity-80 transition group-hover:scale-105 group-hover:opacity-100"
                     loading="lazy"
+                    decoding="async"
                   />
                   <span className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 transition group-hover:opacity-100">
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-container text-black">
