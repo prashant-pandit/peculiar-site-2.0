@@ -5,7 +5,7 @@ import { experiences } from "../../constants";
 export default function ExperiencesSection() {
   return (
     <section className="section-shell" id="experience">
-      <h2 className="section-title mb-10 flex items-center gap-3">
+      <h2 className="section-title mb-10 flex w-full flex-col items-center justify-center gap-2 text-center sm:flex-row sm:gap-3">
         <Sparkles size={30} className="text-primary" aria-hidden="true" />
         Events & Experiences
       </h2>

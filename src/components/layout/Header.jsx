@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import { images, navLinks } from "../../constants";
+import { VinylMark } from "../ui";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -55,12 +56,13 @@ export default function Header() {
       <div className="mx-auto flex max-w-container-max items-center justify-between px-margin-mobile py-3 md:px-4">
         <a
           href="#"
-          className="font-syne text-2xl font-bold text-on-surface md:text-3xl"
+          className="flex items-center gap-2 font-syne text-2xl font-bold text-on-surface md:text-3xl"
         >
+          <VinylMark />
           <img
             src={images.logo_w}
             alt="Peculiar Beats DJ logo"
-            className="w-[210px]"
+            className="w-[175px] md:w-[210px]"
           />
         </a>
         <div className="hidden items-center gap-8 md:flex">

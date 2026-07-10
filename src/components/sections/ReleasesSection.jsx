@@ -3,12 +3,17 @@ import Slider from "react-slick";
 import { ArrowLeft, ArrowRight, Disc3, Play } from "lucide-react";
 import { youtubePlaylist } from "../../constants";
 import { useViewportWidth } from "../../hooks";
+import { EqualizerBars } from "../ui";
+
+const YOUTUBE_ORIGIN = "https://www.youtube.com";
 
 export default function ReleasesSection() {
   const sliderRef = useRef(null);
+  const playerFrameRef = useRef(null);
   const [tracks, setTracks] = useState([]);
   const [selectedVideoId, setSelectedVideoId] = useState("");
   const [playlistStatus, setPlaylistStatus] = useState("loading");
+  const [isPlaying, setIsPlaying] = useState(false);
   const viewportWidth = useViewportWidth();
   const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
   const isMobileCarousel = viewportWidth < 820;
@@ -19,8 +24,40 @@ export default function ReleasesSection() {
       : Math.min(tracks.length || 1, 3);
   const canSlide = tracks.length > slidesToShow;
   const embedUrl = selectedVideoId
-    ? `https://www.youtube.com/embed/${selectedVideoId}?list=${youtubePlaylist.id}&rel=0&modestbranding=1`
-    : `https://www.youtube.com/embed/videoseries?list=${youtubePlaylist.id}&rel=0&modestbranding=1`;
+    ? `https://www.youtube.com/embed/${selectedVideoId}?list=${youtubePlaylist.id}&rel=0&modestbranding=1&enablejsapi=1`
+    : `https://www.youtube.com/embed/videoseries?list=${youtubePlaylist.id}&rel=0&modestbranding=1&enablejsapi=1`;
+
+  // Listens for the YouTube embed's own postMessage state events instead of
+  // loading the full IFrame Player API script - lighter weight, no extra
+  // script tag, just reads events the embed already sends once it's
+  // asked to start "listening".
+  useEffect(() => {
+    function handleMessage(event) {
+      if (event.origin !== YOUTUBE_ORIGIN) return;
+
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      if (data.event === "infoDelivery" && typeof data.info?.playerState === "number") {
+        setIsPlaying(data.info.playerState === 1);
+      }
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  const handlePlayerFrameLoad = () => {
+    setIsPlaying(false);
+    playerFrameRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: "listening", id: "releases-player" }),
+      YOUTUBE_ORIGIN,
+    );
+  };
   const settings = {
     arrows: false,
     dots: canSlide,
@@ -103,7 +140,7 @@ export default function ReleasesSection() {
     >
       <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="section-title flex items-center gap-3">
+          <h2 className="section-title flex flex-col items-center gap-2 text-center md:flex-row md:gap-3 md:text-left">
             <Disc3 size={30} className="text-primary" aria-hidden="true" />
             Music Releases
           </h2>
@@ -144,6 +181,7 @@ export default function ReleasesSection() {
       <div className="bento-card mx-auto w-full max-w-3xl overflow-hidden p-3 md:max-w-4xl md:p-4">
         <div className="aspect-video overflow-hidden rounded bg-black">
           <iframe
+            ref={playerFrameRef}
             className="h-full w-full"
             src={embedUrl}
             title="Peculiar Beats YouTube playlist"
@@ -151,8 +189,15 @@ export default function ReleasesSection() {
             allowFullScreen
             loading="lazy"
             decoding="async"
+            onLoad={handlePlayerFrameLoad}
           />
         </div>
+        {isPlaying && (
+          <div className="label-caps mt-3 flex items-center justify-center gap-2 text-primary">
+            <EqualizerBars />
+            Now Playing
+          </div>
+        )}
       </div>
       {playlistStatus === "ready" && (
         <Slider

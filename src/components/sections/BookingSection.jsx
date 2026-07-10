@@ -109,7 +109,7 @@ export default function BookingSection() {
       {formStatus === "success" && <ConfettiBurst />}
       <div className="relative mx-auto max-w-5xl overflow-visible px-2 py-5 text-center md:py-8">
         <span className="booking-kicker mb-2">Concierge Services</span>
-        <h2 className="section-title mx-auto flex w-fit max-w-full items-center justify-center gap-2 text-left sm:gap-3">
+        <h2 className="section-title mx-auto flex w-fit max-w-full flex-col items-center justify-center gap-2 text-center sm:flex-row sm:gap-3">
           <CalendarDays
             size={28}
             className="shrink-0 text-primary"
