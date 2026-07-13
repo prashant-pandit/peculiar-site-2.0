@@ -27,7 +27,7 @@ export default function IntroSection() {
             INTRO
           </h2>
           <p className="body-copy mt-6 max-w-2xl text-lg">
-            Yo! I&apos;m Peculiar Beats — the DJ who turns every event into a
+            Peculiar Beats — the DJ who turns every event into a
             full-blown vibe. Whether it&apos;s Bollywood hits, Techno grooves, or
             Regional fire, I mix it all with a twist that keeps people locked to
             the dancefloor. I&apos;ve rocked 600+ events across multiple states and

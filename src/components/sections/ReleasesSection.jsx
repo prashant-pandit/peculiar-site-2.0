@@ -16,6 +16,7 @@ export default function ReleasesSection() {
   const [isPlaying, setIsPlaying] = useState(false);
   const viewportWidth = useViewportWidth();
   const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
+  const YOUTUBE_CHANNEL_ID = "UCMv7EhJf8W105CAo5N-b19w";
   const isMobileCarousel = viewportWidth < 820;
   const slidesToShow = isMobileCarousel
     ? 1
@@ -24,8 +25,8 @@ export default function ReleasesSection() {
       : Math.min(tracks.length || 1, 3);
   const canSlide = tracks.length > slidesToShow;
   const embedUrl = selectedVideoId
-    ? `https://www.youtube.com/embed/${selectedVideoId}?list=${youtubePlaylist.id}&rel=0&modestbranding=1&enablejsapi=1`
-    : `https://www.youtube.com/embed/videoseries?list=${youtubePlaylist.id}&rel=0&modestbranding=1&enablejsapi=1`;
+    ? `https://www.youtube.com/embed/${selectedVideoId}?rel=0&modestbranding=1&enablejsapi=1`
+    : "";
 
   // Listens for the YouTube embed's own postMessage state events instead of
   // loading the full IFrame Player API script - lighter weight, no extra
@@ -42,7 +43,10 @@ export default function ReleasesSection() {
         return;
       }
 
-      if (data.event === "infoDelivery" && typeof data.info?.playerState === "number") {
+      if (
+        data.event === "infoDelivery" &&
+        typeof data.info?.playerState === "number"
+      ) {
         setIsPlaying(data.info.playerState === 1);
       }
     }
@@ -76,13 +80,14 @@ export default function ReleasesSection() {
     }
 
     const controller = new AbortController();
-    const playlistUrl = new URL(
-      "https://www.googleapis.com/youtube/v3/playlistItems",
-    );
+    const playlistUrl = new URL("https://www.googleapis.com/youtube/v3/search");
+
     playlistUrl.search = new URLSearchParams({
       part: "snippet",
+      channelId: YOUTUBE_CHANNEL_ID,
+      order: "date",
       maxResults: "50",
-      playlistId: youtubePlaylist.id,
+      type: "video",
       key: apiKey,
     }).toString();
 
@@ -98,7 +103,7 @@ export default function ReleasesSection() {
         const items = data.items
           .map((item) => {
             const snippet = item.snippet;
-            const videoId = snippet?.resourceId?.videoId;
+            const videoId = item.id?.videoId;
             return {
               id: videoId,
               title: snippet?.title,
