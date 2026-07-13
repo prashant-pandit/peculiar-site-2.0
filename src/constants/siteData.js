@@ -15,7 +15,7 @@ export const images = {
   media1Thumb: "/images/media-thumbs/media1.webp",
   media2Thumb: "/images/media-thumbs/media2.webp",
   media3Thumb: "/images/media-thumbs/media3.webp",
-  hero: "https://lh3.googleusercontent.com/aida-public/AB6AXuAqKzu1AparutUahKdpYJLTQ4oh3_erCH8JN2NViVp-3DGP3vv8dg_4h9f9qK9AQEkoG2tO6m69Eg0OG0jW4G21KwCtHY4D4sw3q4lUBmce67dwHBmtBlpWWFaJQLgA_CXNeZzXaKq443NmMJGYb3y16_Er9buhu55779O3IEgLhGifDAFiNkBVSGXRy_lUTN45dDjG3SCuyodo5AtzPqa2Ow7znr_HzWIZIJUCSKWFWiO-pYRjEuQE1PM-ZoPfvN-_nA9vF1YgKJEo",
+  hero: "/images/media-thumbs/media1.webp",
   portrait: "/images/profile.JPEG",
   festival:
     "https://lh3.googleusercontent.com/aida-public/AB6AXuC0xZ4KaAk_scAcdw4st9uhwMEvOUaslhsIK_ZgQlb3TSYhGVSZ105irWAqe-kT3eUAPTnxmI0PzDaUQ9hJLsg8JrADngUxCs0i2bT0MMJ1XZM9iQtucvEvbbdKsD3FSc4Gfro9PyzxH3GgzpinPc4OFgGTZtvr-aNDAM1CUE8w7UKAyeqeUYXQcNI0PHRXzRwQInlnHucf6SK0vbBZ18QSBVBD_yRMjcs_QsbzgqXh7R_a9MN9-Eq7xWjPIXVglFI-VL1Mdi5QvCkx",

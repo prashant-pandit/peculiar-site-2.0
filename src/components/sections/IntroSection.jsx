@@ -13,6 +13,7 @@ export default function IntroSection() {
               alt="Peculiar Beats DJ performing at a club event in Karnataka"
               className="h-full w-full object-cover grayscale transition duration-700 group-hover:grayscale-0"
               loading="lazy"
+              decoding="async"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60" />
           </div>

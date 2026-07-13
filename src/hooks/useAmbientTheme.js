@@ -11,37 +11,42 @@ export function useAmbientTheme() {
   const [ambientTheme, setAmbientTheme] = useState("default");
 
   useEffect(() => {
-    const sections = THEMED_SECTIONS.map(([selector, theme]) => [
-      document.querySelector(selector),
+    const sections = THEMED_SECTIONS.map(([selector, theme]) => ({
+      element: document.querySelector(selector),
       theme,
-    ]).filter(([section]) => section);
-
-    let ticking = false;
+    })).filter(({ element }) => element);
+    let frameId = 0;
 
     const updateAmbientTheme = () => {
-      ticking = false;
+      frameId = 0;
       const checkpoint = window.innerHeight * 0.42;
-      const activeSection = sections.find(([section]) => {
-        const bounds = section.getBoundingClientRect();
+      const activeSection = sections.find(({ element }) => {
+        const bounds = element.getBoundingClientRect();
         return bounds.top <= checkpoint && bounds.bottom > checkpoint;
       });
 
-      setAmbientTheme(activeSection?.[1] || "default");
+      const nextTheme = activeSection?.theme || "default";
+      setAmbientTheme((currentTheme) =>
+        currentTheme === nextTheme ? currentTheme : nextTheme,
+      );
     };
 
-    const requestUpdate = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(updateAmbientTheme);
+    const scheduleAmbientThemeUpdate = () => {
+      if (!frameId) {
+        frameId = window.requestAnimationFrame(updateAmbientTheme);
+      }
     };
 
     updateAmbientTheme();
-    window.addEventListener("scroll", requestUpdate, { passive: true });
-    window.addEventListener("resize", requestUpdate);
+    window.addEventListener("scroll", scheduleAmbientThemeUpdate, {
+      passive: true,
+    });
+    window.addEventListener("resize", scheduleAmbientThemeUpdate);
 
     return () => {
-      window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", requestUpdate);
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("scroll", scheduleAmbientThemeUpdate);
+      window.removeEventListener("resize", scheduleAmbientThemeUpdate);
     };
   }, []);
 

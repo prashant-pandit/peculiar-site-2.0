@@ -19,6 +19,7 @@ export default function PartnersSection() {
                 alt={`${name} logo`}
                 className="partner-logo"
                 loading="lazy"
+                decoding="async"
               />
             ))}
           </div>

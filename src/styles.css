@@ -166,6 +166,16 @@ body::after {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .synthwave-hotspot,
+  .synthwave-pixel,
+  .synthwave-ribbon,
+  .synthwave-beat-travel,
+  .music-string {
+    animation: none !important;
+  }
+}
+
 header {
   position: relative;
   z-index: 50;
