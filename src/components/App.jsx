@@ -1,6 +1,5 @@
 import React from "react";
 import { useAmbientTheme } from "../hooks";
-import { AnimatedWaveBackground } from "./background";
 import { Footer, Header } from "./layout";
 import {
   BookingSection,
@@ -12,21 +11,23 @@ import {
   ReleasesSection,
   StatsSection,
 } from "./sections";
+import { WaveformDivider } from "./ui";
 
 export default function App() {
   const ambientTheme = useAmbientTheme();
 
   return (
     <>
-      <AnimatedWaveBackground />
       <Header />
       <main className={`ambient-theme-${ambientTheme}`}>
         <HeroSection />
         <StatsSection />
         <PartnersSection />
+        <WaveformDivider />
         <IntroSection />
         <MediaSection />
         <ReleasesSection />
+        <WaveformDivider />
         <ExperiencesSection />
         <BookingSection />
       </main>

@@ -23,12 +23,12 @@ export default function IntroSection() {
             <span className="h-2 w-2 rounded-full bg-primary-container" />
             <span className="label-caps text-primary">The Architect of Sound</span>
           </div>
-          <h2 className="section-title flex max-w-3xl items-center gap-3">
+          <h2 className="section-title flex w-full max-w-3xl flex-col items-center justify-center gap-2 text-center sm:flex-row sm:gap-3">
             <Mic2 size={30} className="text-primary" aria-hidden="true" />
             INTRO
           </h2>
           <p className="body-copy mt-6 max-w-2xl text-lg">
-            Yo! I&apos;m Peculiar Beats — the DJ who turns every event into a
+            Peculiar Beats — the DJ who turns every event into a
             full-blown vibe. Whether it&apos;s Bollywood hits, Techno grooves, or
             Regional fire, I mix it all with a twist that keeps people locked to
             the dancefloor. I&apos;ve rocked 600+ events across multiple states and

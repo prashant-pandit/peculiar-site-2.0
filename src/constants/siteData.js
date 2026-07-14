@@ -1,4 +1,4 @@
-import { Building2, Moon, Sparkles } from "lucide-react";
+import { Building2, Disc3, Headphones, Music2, Radio, Speaker } from "lucide-react";
 import {
   FaInstagram,
   FaSoundcloud,
@@ -30,27 +30,27 @@ export const images = {
 };
 
 export const stats = [
-  ["600+", "Events Performed"],
-  ["20+", "Cities Toured"],
-  ["100+", "Unique Venues"],
-  ["10+", "Genre Versatility"],
+  { value: "600+", label: "Events Performed", icon: Disc3 },
+  { value: "20+", label: "Cities Toured", icon: Radio },
+  { value: "100+", label: "Unique Venues", icon: Building2 },
+  { value: "10+", label: "Genre Versatility", icon: Music2 },
 ];
 
 export const experiences = [
   {
-    icon: Moon,
+    icon: Headphones,
     tone: "nightlife",
     title: "Club & Nightlife",
     copy: "Electrifying sets built for packed dance floors. From Bollywood bangers to Techno and commercial anthems, every transition is designed to keep the crowd moving all night long.",
   },
   {
-    icon: Building2,
+    icon: Speaker,
     tone: "gala",
     title: "Corporate Galas",
     copy: "Professional yet energetic musical experiences tailored for corporate events, private parties, launches, and celebrations — creating the perfect atmosphere from start to finish.",
   },
   {
-    icon: Sparkles,
+    icon: Disc3,
     tone: "wedding",
     title: "Luxury Weddings",
     copy: "From elegant entries to unforgettable dance-floor moments, curated music experiences that blend timeless favorites with high-energy celebrations for every generation.",

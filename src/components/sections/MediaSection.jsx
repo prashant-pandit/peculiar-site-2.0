@@ -3,6 +3,7 @@ import Slider from "react-slick";
 import { ArrowLeft, ArrowRight, Clapperboard, Pause, Play } from "lucide-react";
 import { mediaVideos } from "../../constants";
 import { useViewportWidth } from "../../hooks";
+import { EqualizerBars } from "../ui";
 
 export default function MediaSection() {
   const sliderRef = useRef(null);
@@ -72,7 +73,7 @@ export default function MediaSection() {
       <div className="visuals-panel">
         <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 className="section-title flex items-center gap-3">
+            <h2 className="section-title flex flex-col items-center gap-2 text-center md:flex-row md:gap-3 md:text-left">
               <Clapperboard size={30} className="text-primary" aria-hidden="true" />
               Visuals
             </h2>
@@ -181,7 +182,10 @@ export default function MediaSection() {
           </div>
 
           <div className="mt-5">
-            <span className="label-caps text-primary">Featured Video</span>
+            <span className="label-caps flex items-center gap-2 text-primary">
+              Featured Video
+              {isFeaturedVideoPlaying && <EqualizerBars />}
+            </span>
 
             <h3 className="mt-2 font-syne text-2xl font-bold text-on-surface">
               {selectedVideo.title}
