@@ -99,11 +99,10 @@ export const youtubePlaylist = {
 };
 
 export const navLinks = [
-  ["Media", "#media"],
-  ["Releases", "#releases"],
-  ["Experience", "#experience"],
-  ["Bookings", "#booking"],
-  ["Quick Links", "#footer"],
+  ["Releases", "/releases"],
+  ["Media", "/#media"],
+  ["Experience", "/#experience"],
+  ["Bookings", "/#booking"],
 ];
 
 export const eventTypes = [
