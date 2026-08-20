@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
+  CheckCircle,
   Download,
   Loader2,
   Lock,
@@ -40,6 +41,7 @@ export default function PersistentAudioPlayer() {
     volume,
     isMuted,
     previewLimitSeconds,
+    isTrackUnlocked,
     togglePlay,
     pauseTrack,
     seek,
@@ -65,6 +67,8 @@ export default function PersistentAudioPlayer() {
   // Only render on the /releases page
   if (!isReleasesPage || !currentTrack) return null;
 
+  const isUnlocked = isTrackUnlocked(currentTrack.id);
+
   const handleProgressBarClick = (e) => {
     if (!progressBarRef.current) return;
     const rect = progressBarRef.current.getBoundingClientRect();
@@ -87,7 +91,22 @@ export default function PersistentAudioPlayer() {
       ? Math.min(1, previewLimitSeconds / effectiveDuration) * 100
       : 100;
   const isHoverPastLimit =
-    effectiveDuration > 0 && hoverPosition * effectiveDuration > previewLimitSeconds;
+    !isUnlocked && effectiveDuration > 0 && hoverPosition * effectiveDuration > previewLimitSeconds;
+
+  const handleDownloadMaster = () => {
+    const downloadLink = currentTrack.downloadUrl || currentTrack.fullAudioUrl || currentTrack.previewUrl;
+    if (downloadLink && downloadLink.startsWith("http")) {
+      const a = document.createElement("a");
+      a.href = downloadLink;
+      a.download = `${currentTrack.id}-master.mp3`;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      alert(`Downloading Lossless 24-bit WAV Master for "${currentTrack.title}"!`);
+    }
+  };
 
   return (
     <div
@@ -108,8 +127,8 @@ export default function PersistentAudioPlayer() {
         >
           {/* Background rail */}
           <div className="w-full h-1 bg-white/15 relative transition-all group-hover:h-2">
-            {/* 45s Preview Limit marker on the bar */}
-            {previewFraction < 100 && (
+            {/* 45s Preview Limit marker on the bar (only shown if not unlocked) */}
+            {!isUnlocked && previewFraction < 100 && (
               <div
                 className="absolute top-0 bottom-0 w-0.5 bg-primary/80 z-10"
                 style={{ left: `${previewFraction}%` }}
@@ -119,7 +138,11 @@ export default function PersistentAudioPlayer() {
 
             {/* Progress fill */}
             <div
-              className="h-full bg-gradient-to-r from-primary to-[#ff00bf] relative"
+              className={`h-full relative ${
+                isUnlocked
+                  ? "bg-gradient-to-r from-green-400 to-primary"
+                  : "bg-gradient-to-r from-primary to-[#ff00bf]"
+              }`}
               style={{ width: `${progress}%` }}
             >
               {/* Scrubber handle */}
@@ -140,7 +163,7 @@ export default function PersistentAudioPlayer() {
               {isHoverPastLimit && <Lock size={10} />}
               <span>
                 {formatTime(hoverPosition * effectiveDuration)}
-                {isHoverPastLimit ? " (Locked)" : ""}
+                {isHoverPastLimit ? " (Locked)" : isUnlocked ? " (Full Master)" : ""}
               </span>
             </div>
           )}
@@ -168,10 +191,16 @@ export default function PersistentAudioPlayer() {
                 <h4 className="font-syne text-sm md:text-base font-bold text-white truncate">
                   {currentTrack.title}
                 </h4>
-                {currentTrack.isExclusive && (
-                  <span className="hidden sm:inline-block text-[9px] font-bold uppercase tracking-wider bg-primary/20 text-primary px-1.5 py-0.5 rounded border border-primary/30">
-                    Exclusive
+                {isUnlocked ? (
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded border border-green-500/30">
+                    <CheckCircle size={10} /> Unlocked
                   </span>
+                ) : (
+                  currentTrack.isExclusive && (
+                    <span className="hidden sm:inline-block text-[9px] font-bold uppercase tracking-wider bg-primary/20 text-primary px-1.5 py-0.5 rounded border border-primary/30">
+                      Exclusive
+                    </span>
+                  )
                 )}
               </div>
               <div className="flex items-center gap-2 text-xs text-on-surface-variant">
@@ -224,14 +253,20 @@ export default function PersistentAudioPlayer() {
               </button>
             </div>
 
-            {/* Time Indicator with 45s Preview Tag */}
+            {/* Time Indicator */}
             <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-on-surface-variant">
               <span className="text-white font-medium">{formatTime(currentTime)}</span>
               <span>/</span>
               <span>{formatTime(effectiveDuration)}</span>
-              <span className="text-[10px] text-primary/90 font-semibold bg-primary/10 px-1.5 py-0.2 rounded border border-primary/20">
-                45s Preview
-              </span>
+              {isUnlocked ? (
+                <span className="text-[10px] text-green-400 font-semibold bg-green-950/40 px-1.5 py-0.2 rounded border border-green-500/30">
+                  Full Master
+                </span>
+              ) : (
+                <span className="text-[10px] text-primary/90 font-semibold bg-primary/10 px-1.5 py-0.2 rounded border border-primary/20">
+                  45s Preview
+                </span>
+              )}
             </div>
           </div>
 
@@ -262,15 +297,25 @@ export default function PersistentAudioPlayer() {
               />
             </div>
 
-            {/* Buy / Download Track Button */}
-            <button
-              onClick={() => openPurchaseModal(currentTrack)}
-              className="flex items-center gap-1.5 md:gap-2 rounded-xl bg-gradient-to-r from-primary to-[#ff00bf] px-3.5 py-2.5 md:px-5 md:py-2.5 font-syne text-xs md:text-sm font-bold text-black transition-all hover:scale-105 active:scale-95 hover:brightness-110"
-            >
-              <Download size={15} />
-              <span className="hidden xs:inline">Get Track</span>
-              <span>({currentTrack.price})</span>
-            </button>
+            {/* Buy OR Direct Download Button */}
+            {isUnlocked ? (
+              <button
+                onClick={handleDownloadMaster}
+                className="flex items-center gap-1.5 md:gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-400 px-3.5 py-2.5 md:px-5 md:py-2.5 font-syne text-xs md:text-sm font-bold text-black transition-all hover:scale-105 active:scale-95 hover:brightness-110 shadow-lg shadow-green-500/20"
+              >
+                <Download size={15} />
+                <span>Download WAV</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => openPurchaseModal(currentTrack)}
+                className="flex items-center gap-1.5 md:gap-2 rounded-xl bg-gradient-to-r from-primary to-[#ff00bf] px-3.5 py-2.5 md:px-5 md:py-2.5 font-syne text-xs md:text-sm font-bold text-black transition-all hover:scale-105 active:scale-95 hover:brightness-110"
+              >
+                <Download size={15} />
+                <span className="hidden xs:inline">Get Track</span>
+                <span>({currentTrack.priceInr || currentTrack.price})</span>
+              </button>
+            )}
 
             {/* Minimize toggle */}
             <button

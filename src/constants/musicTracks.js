@@ -1,12 +1,11 @@
 /**
  * Music Track Catalog for Peculiar Beats (Sonic Vanguard)
- * Each track supports:
- * - Preview playback via HTML5 audio
- * - Metadata (BPM, Key, Genre, Duration, Tags)
- * - Purchase / Download redirection (Stripe / Razorpay / Gumroad payment link)
+ * Hosted on Cloudflare R2:
+ * - Preview clips (45s gating before purchase)
+ * - Full Uncut Master Audio (streamable & downloadable after purchase)
  */
 
-const R2_BASE = "https://pub-f1a3f69c340e4dec8fda3b8eb74ce3ce.r2.dev"
+export const R2_BASE = "https://pub-f1a3f69c340e4dec8fda3b8eb74ce3ce.r2.dev";
 
 export const musicTracks = [
   {
@@ -24,8 +23,9 @@ export const musicTracks = [
     priceInr: "₹399",
     coverArt: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
     previewUrl: `${R2_BASE}/previews/soundhelix_preview.mp3`,
-    paymentUrl: "https://buy.stripe.com/test_neonpulse",
-    downloadUrl: "#download-neon-pulse",
+    fullAudioUrl: `${R2_BASE}/artwork/SoundHelix.mp3`,
+    downloadUrl: `${R2_BASE}/artwork/SoundHelix.mp3`,
+    paymentUrl: "https://rzp.io/l/neonpulse",
     tags: ["Festival Ready", "Heavy Bass", "24-bit WAV Included"],
     description: "Driving underground techno with hypnotic modular synth leads, massive sub pressure, and an electrifying drop built for stadium sound systems.",
     isExclusive: true,
@@ -46,8 +46,9 @@ export const musicTracks = [
     priceInr: "₹399",
     coverArt: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
     previewUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    paymentUrl: "https://buy.stripe.com/test_delhiafterdark",
-    downloadUrl: "#download-delhi-after-dark",
+    fullAudioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    downloadUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    paymentUrl: "https://rzp.io/l/delhiafterdark",
     tags: ["Afro Tech", "Groovy Percussion", "Club Favorite"],
     description: "Deep tribal grooves fused with rolling tech-house basslines and atmospheric late-night textures, tested in club sets across 20+ cities.",
     isExclusive: false,
@@ -68,8 +69,9 @@ export const musicTracks = [
     priceInr: "₹449",
     coverArt: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
     previewUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    paymentUrl: "https://buy.stripe.com/test_cyberodyssey",
-    downloadUrl: "#download-cyber-odyssey",
+    fullAudioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    downloadUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    paymentUrl: "https://rzp.io/l/cyberodyssey",
     tags: ["Melodic", "Euphoric Lead", "Mastered for Big Systems"],
     description: "An emotional, futuristic journey featuring lush analog arp sequences, towering builds, and an uplifting breakdown that ignites sunset sessions.",
     isExclusive: true,
@@ -90,8 +92,9 @@ export const musicTracks = [
     priceInr: "₹399",
     coverArt: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&auto=format&fit=crop&q=80",
     previewUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    paymentUrl: "https://buy.stripe.com/test_subzerobass",
-    downloadUrl: "#download-sub-zero-bass",
+    fullAudioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    downloadUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    paymentUrl: "https://rzp.io/l/subzerobass",
     tags: ["UK Garage", "Heavy Wobble", "Dubplate"],
     description: "Raw syncopated percussion, 2-step swing, and speaker-rattling sub frequency designed for bass lovers and underground warehouse raves.",
     isExclusive: false,
@@ -112,8 +115,9 @@ export const musicTracks = [
     priceInr: "₹299",
     coverArt: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&auto=format&fit=crop&q=80",
     previewUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-    paymentUrl: "https://buy.stripe.com/test_bollywoodfrequencies",
-    downloadUrl: "#download-bollywood-frequencies",
+    fullAudioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+    downloadUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+    paymentUrl: "https://rzp.io/l/bollywoodfrequencies",
     tags: ["Crowd Pleaser", "Wedding & Club Anthem", "High Energy"],
     description: "High-octane commercial fusion blending iconic desi hooks with modern punchy electronic basslines. A proven crowd pleaser across 600+ gigs.",
     isExclusive: true,
@@ -134,8 +138,9 @@ export const musicTracks = [
     priceInr: "₹399",
     coverArt: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80",
     previewUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
-    paymentUrl: "https://buy.stripe.com/test_auroradrift",
-    downloadUrl: "#download-aurora-drift",
+    fullAudioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+    downloadUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+    paymentUrl: "https://rzp.io/l/auroradrift",
     tags: ["Sunset Vibes", "Lush Atmosphere", "Organic Textures"],
     description: "Hypnotic pads, organic world percussion, and a warm bassline that captures the golden hour vibe for lounge and beachside festival stages.",
     isExclusive: false,
