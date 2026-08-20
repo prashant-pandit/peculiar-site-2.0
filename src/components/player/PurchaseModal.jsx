@@ -1,9 +1,11 @@
-import React, { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
+  AlertCircle,
   CheckCircle2,
   Clock,
   Download,
+  Loader2,
   RotateCcw,
   ShieldCheck,
   Sparkles,
@@ -11,9 +13,14 @@ import {
   Zap,
 } from "lucide-react";
 import { useAudioPlayer } from "../../hooks";
+import { initiateRazorpayCheckout } from "../../utils";
 
 export default function PurchaseModal() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const isReleasesPage =
     location.pathname === "/releases" ||
     location.pathname.startsWith("/releases/") ||
@@ -30,30 +37,49 @@ export default function PurchaseModal() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && !isProcessing) {
         closePurchaseModal();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [closePurchaseModal]);
+  }, [closePurchaseModal, isProcessing]);
+
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    setIsProcessing(false);
+    setErrorMessage("");
+  }, [purchaseTrack]);
 
   if (!isReleasesPage || !purchaseTrack) return null;
 
-  const handleProceedToPayment = () => {
-    if (purchaseTrack.paymentUrl && purchaseTrack.paymentUrl.startsWith("http")) {
-      window.open(purchaseTrack.paymentUrl, "_blank", "noopener,noreferrer");
-    } else {
-      alert(
-        `Redirecting to secure checkout for "${purchaseTrack.title}" (${purchaseTrack.price} / ${purchaseTrack.priceInr}). In production, this links directly to your Stripe or Razorpay Payment Link!`,
-      );
-    }
+  const handleProceedToPayment = async () => {
+    setIsProcessing(true);
+    setErrorMessage("");
+
+    await initiateRazorpayCheckout({
+      track: purchaseTrack,
+      onSuccess: ({ paymentId }) => {
+        setIsProcessing(false);
+        closePurchaseModal();
+        navigate(`/releases?payment=success&track=${purchaseTrack.id}&payment_id=${paymentId}`);
+      },
+      onError: (err) => {
+        setIsProcessing(false);
+        setErrorMessage(typeof err === "string" ? err : "Payment failed or cancelled. Please try again.");
+      },
+      onDismiss: () => {
+        setIsProcessing(false);
+      },
+    });
   };
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn"
-      onClick={closePurchaseModal}
+      onClick={() => {
+        if (!isProcessing) closePurchaseModal();
+      }}
     >
       <div
         className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-primary/40 bg-[#140c1a] p-5 sm:p-7 text-on-surface shadow-2xl"
@@ -65,26 +91,35 @@ export default function PurchaseModal() {
         {/* Glow accent */}
         <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-primary/20 blur-3xl" />
 
-        {/* Dedicated Top Header Row (Zero overlap with notification or content) */}
+        {/* Dedicated Top Header Row */}
         <div className="flex items-center justify-between pb-3 mb-4 border-b border-outline-variant/20">
           <div className="flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-primary">
               <Sparkles size={12} />
             </span>
             <span className="font-syne text-xs uppercase tracking-wider font-bold text-primary">
-              Sonic Vault Checkout
+              Sonic Vault • Razorpay Checkout
             </span>
           </div>
 
           {/* Close Button */}
           <button
             onClick={closePurchaseModal}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:bg-white/15 hover:text-white transition-colors"
+            disabled={isProcessing}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-on-surface-variant hover:bg-white/15 hover:text-white transition-colors disabled:opacity-50"
             aria-label="Close modal"
           >
             <X size={18} />
           </button>
         </div>
+
+        {/* Error Notification Banner */}
+        {errorMessage && (
+          <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-red-500/40 bg-red-950/40 p-3 text-xs text-red-200 animate-fadeIn">
+            <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">{errorMessage}</div>
+          </div>
+        )}
 
         {/* 45-Second Preview Limit Reached Banner */}
         {isLimitReached && (
@@ -147,9 +182,9 @@ export default function PurchaseModal() {
           </div>
           <div className="text-right">
             <div className="font-syne text-2xl font-extrabold text-white">
-              {purchaseTrack.price}
+              {purchaseTrack.priceInr || "₹399"}
               <span className="text-xs font-normal text-on-surface-variant ml-1.5 font-mono">
-                ({purchaseTrack.priceInr})
+                ({purchaseTrack.price || "$4.99"})
               </span>
             </div>
           </div>
@@ -175,7 +210,7 @@ export default function PurchaseModal() {
           </div>
           <div className="flex items-center gap-2.5 text-on-surface/90">
             <CheckCircle2 size={16} className="text-primary flex-shrink-0" />
-            <span>Instant download link delivered immediately to your screen & email</span>
+            <span>Instant download link delivered immediately on screen & receipt</span>
           </div>
         </div>
 
@@ -183,16 +218,27 @@ export default function PurchaseModal() {
         <div className="space-y-3">
           <button
             onClick={handleProceedToPayment}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#bf00ff] to-[#ecb1ff] px-6 py-3.5 font-syne font-bold text-black transition-all hover:scale-[1.02] hover:brightness-110 active:scale-[0.98]"
+            disabled={isProcessing}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#bf00ff] to-[#ecb1ff] px-6 py-3.5 font-syne font-bold text-black transition-all hover:scale-[1.02] hover:brightness-110 active:scale-[0.98] disabled:opacity-75 disabled:cursor-not-allowed"
           >
-            <Download size={18} />
-            <span>Unlock & Download Now ({purchaseTrack.price})</span>
+            {isProcessing ? (
+              <>
+                <Loader2 size={18} className="animate-spin text-black" />
+                <span>Opening Razorpay Checkout...</span>
+              </>
+            ) : (
+              <>
+                <Download size={18} />
+                <span>Pay & Unlock Now ({purchaseTrack.priceInr || "₹399"})</span>
+              </>
+            )}
           </button>
 
           {isLimitReached && (
             <button
               onClick={replayPreview}
-              className="w-full flex items-center justify-center gap-1.5 text-xs text-on-surface-variant hover:text-white py-1 transition-colors"
+              disabled={isProcessing}
+              className="w-full flex items-center justify-center gap-1.5 text-xs text-on-surface-variant hover:text-white py-1 transition-colors disabled:opacity-50"
             >
               <RotateCcw size={13} /> Replay 45s Preview
             </button>
@@ -201,12 +247,12 @@ export default function PurchaseModal() {
           <div className="flex items-center justify-center gap-4 text-[11px] text-on-surface-variant">
             <span className="flex items-center gap-1">
               <ShieldCheck size={13} className="text-green-400" />
-              Secure 256-bit Checkout
+              Razorpay 256-bit Secure
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
               <Zap size={13} className="text-primary" />
-              Instant Delivery
+              UPI / Cards / NetBanking
             </span>
           </div>
         </div>

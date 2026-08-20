@@ -6,6 +6,8 @@
  * - Purchase / Download redirection (Stripe / Razorpay / Gumroad payment link)
  */
 
+const R2_BASE = "https://pub-f1a3f69c340e4dec8fda3b8eb74ce3ce.r2.dev"
+
 export const musicTracks = [
   {
     id: "neon-pulse",
@@ -21,7 +23,7 @@ export const musicTracks = [
     price: "$4.99",
     priceInr: "₹399",
     coverArt: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
-    previewUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    previewUrl: `${R2_BASE}/previews/soundhelix_preview.mp3`,
     paymentUrl: "https://buy.stripe.com/test_neonpulse",
     downloadUrl: "#download-neon-pulse",
     tags: ["Festival Ready", "Heavy Bass", "24-bit WAV Included"],
