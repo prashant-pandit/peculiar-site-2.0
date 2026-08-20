@@ -8,6 +8,7 @@
 - **Styling**: Tailwind CSS + custom CSS (`src/styles.css`) + PostCSS / Autoprefixer
 - **UI & Icons**: Lucide React, React Icons (`react-icons`), React Slick / Slick Carousel
 - **Hosting / Deploy Target**: Firebase (`firebase.json`, `.firebaserc`) & Netlify configuration
+- **Audio & Media Storage**: Cloudflare R2 Storage (Zero egress fees & Global CDN)
 
 ## Project Architecture
 - `src/`

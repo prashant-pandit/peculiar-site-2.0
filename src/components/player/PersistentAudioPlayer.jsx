@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import {
   Download,
   Loader2,
+  Lock,
   Maximize2,
   Minimize2,
   Pause,
@@ -10,7 +11,6 @@ import {
   SkipForward,
   Volume2,
   VolumeX,
-  Sparkles,
 } from "lucide-react";
 import { useAudioPlayer } from "../../hooks";
 import { EqualizerBars } from "../ui";
@@ -32,6 +32,7 @@ export default function PersistentAudioPlayer() {
     progress,
     volume,
     isMuted,
+    previewLimitSeconds,
     togglePlay,
     seek,
     setVolume,
@@ -64,6 +65,14 @@ export default function PersistentAudioPlayer() {
     setHoverPosition(fraction);
   };
 
+  const effectiveDuration = duration || currentTrack.durationSec || 0;
+  const previewFraction =
+    effectiveDuration > 0
+      ? Math.min(1, previewLimitSeconds / effectiveDuration) * 100
+      : 100;
+  const isHoverPastLimit =
+    effectiveDuration > 0 && hoverPosition * effectiveDuration > previewLimitSeconds;
+
   return (
     <div
       className={`fixed bottom-0 left-0 right-0 z-40 transition-all duration-300 ${
@@ -82,7 +91,16 @@ export default function PersistentAudioPlayer() {
           onMouseMove={handleProgressBarMouseMove}
         >
           {/* Background rail */}
-          <div className="w-full h-1 bg-white/15 transition-all group-hover:h-2">
+          <div className="w-full h-1 bg-white/15 relative transition-all group-hover:h-2">
+            {/* 45s Preview Limit marker on the bar */}
+            {previewFraction < 100 && (
+              <div
+                className="absolute top-0 bottom-0 w-0.5 bg-primary/80 z-10"
+                style={{ left: `${previewFraction}%` }}
+                title="45s Preview Limit"
+              />
+            )}
+
             {/* Progress fill */}
             <div
               className="h-full bg-gradient-to-r from-primary to-[#ff00bf] relative"
@@ -94,12 +112,20 @@ export default function PersistentAudioPlayer() {
           </div>
 
           {/* Hover preview tooltip */}
-          {isHoveringProgress && duration > 0 && (
+          {isHoveringProgress && effectiveDuration > 0 && (
             <div
-              className="absolute -top-7 text-[10px] font-mono bg-black/90 text-primary px-2 py-0.5 rounded border border-primary/30 pointer-events-none transform -translate-x-1/2 shadow-lg"
+              className={`absolute -top-7 text-[10px] font-mono px-2 py-0.5 rounded border pointer-events-none transform -translate-x-1/2 shadow-lg flex items-center gap-1 ${
+                isHoverPastLimit
+                  ? "bg-red-950/90 text-red-300 border-red-500/40"
+                  : "bg-black/90 text-primary border-primary/30"
+              }`}
               style={{ left: `${hoverPosition * 100}%` }}
             >
-              {formatTime(hoverPosition * duration)}
+              {isHoverPastLimit && <Lock size={10} />}
+              <span>
+                {formatTime(hoverPosition * effectiveDuration)}
+                {isHoverPastLimit ? " (Locked)" : ""}
+              </span>
             </div>
           )}
         </div>
@@ -182,11 +208,14 @@ export default function PersistentAudioPlayer() {
               </button>
             </div>
 
-            {/* Time Indicator */}
+            {/* Time Indicator with 45s Preview Tag */}
             <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-on-surface-variant">
-              <span>{formatTime(currentTime)}</span>
+              <span className="text-white font-medium">{formatTime(currentTime)}</span>
               <span>/</span>
-              <span>{formatTime(duration || currentTrack.durationSec || 0)}</span>
+              <span>{formatTime(effectiveDuration)}</span>
+              <span className="text-[10px] text-primary/90 font-semibold bg-primary/10 px-1.5 py-0.2 rounded border border-primary/20">
+                45s Preview
+              </span>
             </div>
           </div>
 

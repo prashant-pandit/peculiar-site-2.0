@@ -3,8 +3,13 @@ import { musicTracks } from "../constants";
 
 const AudioPlayerContext = createContext(null);
 
+export const PREVIEW_LIMIT_SECONDS = 45;
+
 export function AudioPlayerProvider({ children }) {
   const audioRef = useRef(null);
+  const currentTrackRef = useRef(null);
+  const hasTriggeredLimitRef = useRef(false);
+
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -13,6 +18,13 @@ export function AudioPlayerProvider({ children }) {
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [purchaseTrack, setPurchaseTrack] = useState(null);
+  const [purchaseModalMeta, setPurchaseModalMeta] = useState({});
+  const [isPreviewGated, setIsPreviewGated] = useState(false);
+
+  // Sync ref with state
+  useEffect(() => {
+    currentTrackRef.current = currentTrack;
+  }, [currentTrack]);
 
   // Initialize native HTML5 Audio instance once
   useEffect(() => {
@@ -22,9 +34,29 @@ export function AudioPlayerProvider({ children }) {
     audioRef.current = audio;
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
+      const current = audio.currentTime;
+      setCurrentTime(current);
+
       if (audio.duration && !isNaN(audio.duration)) {
         setDuration(audio.duration);
+      }
+
+      // Check 45-Second Preview Gating Limit
+      if (current >= PREVIEW_LIMIT_SECONDS) {
+        audio.pause();
+        audio.currentTime = PREVIEW_LIMIT_SECONDS;
+        setCurrentTime(PREVIEW_LIMIT_SECONDS);
+        setIsPlaying(false);
+        setIsPreviewGated(true);
+
+        // Open modal ONLY ONCE when crossing the 45s threshold
+        if (!hasTriggeredLimitRef.current) {
+          hasTriggeredLimitRef.current = true;
+          if (currentTrackRef.current) {
+            setPurchaseTrack(currentTrackRef.current);
+            setPurchaseModalMeta({ isLimitReached: true });
+          }
+        }
       }
     };
 
@@ -81,6 +113,15 @@ export function AudioPlayerProvider({ children }) {
     if (!audio) return;
 
     if (currentTrack?.id === track.id) {
+      if (currentTime >= PREVIEW_LIMIT_SECONDS) {
+        // Replay from beginning if user tries to play at cutoff
+        hasTriggeredLimitRef.current = false;
+        setIsPreviewGated(false);
+        audio.currentTime = 0;
+        setCurrentTime(0);
+        audio.play().then(() => setIsPlaying(true)).catch((err) => console.warn(err));
+        return;
+      }
       if (isPlaying) {
         audio.pause();
       } else {
@@ -89,6 +130,8 @@ export function AudioPlayerProvider({ children }) {
       return;
     }
 
+    hasTriggeredLimitRef.current = false;
+    setIsPreviewGated(false);
     setCurrentTrack(track);
     setIsLoading(true);
     setCurrentTime(0);
@@ -121,6 +164,11 @@ export function AudioPlayerProvider({ children }) {
       return;
     }
 
+    if (currentTime >= PREVIEW_LIMIT_SECONDS) {
+      openPurchaseModal(currentTrack, { isLimitReached: true });
+      return;
+    }
+
     if (isPlaying) {
       pauseTrack();
     } else if (audioRef.current) {
@@ -130,7 +178,21 @@ export function AudioPlayerProvider({ children }) {
 
   const seek = (fraction) => {
     if (!audioRef.current || isNaN(fraction)) return;
-    const targetTime = Math.max(0, Math.min(fraction * (duration || 1), duration));
+    let targetTime = Math.max(0, Math.min(fraction * (duration || 1), duration));
+
+    // Enforce 45s preview limit ceiling
+    if (targetTime >= PREVIEW_LIMIT_SECONDS) {
+      targetTime = PREVIEW_LIMIT_SECONDS;
+      setIsPreviewGated(true);
+      if (!hasTriggeredLimitRef.current) {
+        hasTriggeredLimitRef.current = true;
+        openPurchaseModal(currentTrack, { isLimitReached: true });
+      }
+    } else {
+      setIsPreviewGated(false);
+      hasTriggeredLimitRef.current = false;
+    }
+
     audioRef.current.currentTime = targetTime;
     setCurrentTime(targetTime);
   };
@@ -156,6 +218,8 @@ export function AudioPlayerProvider({ children }) {
 
   const handleNext = () => {
     if (!currentTrack || musicTracks.length === 0) return;
+    hasTriggeredLimitRef.current = false;
+    setIsPreviewGated(false);
     const currentIndex = musicTracks.findIndex((t) => t.id === currentTrack.id);
     const nextIndex = (currentIndex + 1) % musicTracks.length;
     playTrack(musicTracks[nextIndex]);
@@ -167,17 +231,31 @@ export function AudioPlayerProvider({ children }) {
       seek(0);
       return;
     }
+    hasTriggeredLimitRef.current = false;
+    setIsPreviewGated(false);
     const currentIndex = musicTracks.findIndex((t) => t.id === currentTrack.id);
     const prevIndex = (currentIndex - 1 + musicTracks.length) % musicTracks.length;
     playTrack(musicTracks[prevIndex]);
   };
 
-  const openPurchaseModal = (track) => {
+  const openPurchaseModal = (track, meta = {}) => {
     setPurchaseTrack(track || currentTrack);
+    setPurchaseModalMeta(meta);
   };
 
   const closePurchaseModal = () => {
     setPurchaseTrack(null);
+    setPurchaseModalMeta({});
+  };
+
+  const replayPreview = () => {
+    if (!audioRef.current) return;
+    hasTriggeredLimitRef.current = false;
+    setIsPreviewGated(false);
+    audioRef.current.currentTime = 0;
+    setCurrentTime(0);
+    audioRef.current.play().then(() => setIsPlaying(true)).catch((err) => console.warn(err));
+    closePurchaseModal();
   };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -194,6 +272,9 @@ export function AudioPlayerProvider({ children }) {
         volume,
         isMuted,
         purchaseTrack,
+        purchaseModalMeta,
+        isPreviewGated,
+        previewLimitSeconds: PREVIEW_LIMIT_SECONDS,
         playTrack,
         pauseTrack,
         togglePlay,
@@ -204,6 +285,7 @@ export function AudioPlayerProvider({ children }) {
         playPrev: handlePrev,
         openPurchaseModal,
         closePurchaseModal,
+        replayPreview,
       }}
     >
       {children}
