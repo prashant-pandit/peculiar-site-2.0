@@ -76,11 +76,54 @@ export default function ReleasesPage() {
       });
   }, [searchQuery, selectedGenre, sortBy]);
 
+  const paymentStatus = searchParams.get("payment");
+  const purchasedTrackId = searchParams.get("track");
+  const purchasedTrack = purchasedTrackId
+    ? musicTracks.find((t) => t.id.toLowerCase() === purchasedTrackId.toLowerCase())
+    : null;
+
   return (
     <div className="min-h-screen pt-28 pb-36 px-margin-mobile md:px-margin-desktop text-on-surface">
       <div className="mx-auto max-w-container-max">
+        {/* Payment Success Celebration Banner */}
+        {paymentStatus === "success" && (
+          <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-green-500/40 bg-green-950/30 p-5 backdrop-blur-md animate-fadeIn">
+            <div className="flex items-center gap-3.5">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-500 text-black font-bold">
+                <Check size={20} />
+              </span>
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-green-400">
+                  Payment Confirmed • Master Audio Unlocked
+                </div>
+                <div className="text-sm font-medium text-white mt-0.5">
+                  Thank you for supporting Peculiar Beats!{" "}
+                  {purchasedTrack && (
+                    <span>
+                      Your download for <strong>{purchasedTrack.title}</strong> is ready.
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <a
+              href={purchasedTrack?.downloadUrl && purchasedTrack.downloadUrl.startsWith("http") ? purchasedTrack.downloadUrl : "#"}
+              onClick={(e) => {
+                if (!purchasedTrack?.downloadUrl || !purchasedTrack.downloadUrl.startsWith("http")) {
+                  e.preventDefault();
+                  alert(`Downloading Lossless 24-bit WAV Master + 320kbps MP3 for ${purchasedTrack?.title || "Track"}!`);
+                }
+              }}
+              className="flex items-center gap-2 rounded-xl bg-green-500 px-5 py-2.5 font-syne text-xs font-bold text-black hover:bg-green-400 transition-all whitespace-nowrap shadow-lg shadow-green-500/20"
+            >
+              <Download size={15} />
+              <span>Download Master WAV</span>
+            </a>
+          </div>
+        )}
+
         {/* Deep Link Notification Banner */}
-        {highlightedTrackId && (
+        {highlightedTrackId && !paymentStatus && (
           <div className="mb-8 flex items-center justify-between rounded-xl border border-primary/40 bg-primary/10 p-4 backdrop-blur-md animate-fadeIn">
             <div className="flex items-center gap-3">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-black font-bold">
