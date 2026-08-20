@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Download,
   Loader2,
@@ -23,6 +24,12 @@ function formatTime(seconds) {
 }
 
 export default function PersistentAudioPlayer() {
+  const location = useLocation();
+  const isReleasesPage =
+    location.pathname === "/releases" ||
+    location.pathname.startsWith("/releases/") ||
+    location.pathname.startsWith("/musictrack");
+
   const {
     currentTrack,
     isPlaying,
@@ -34,6 +41,7 @@ export default function PersistentAudioPlayer() {
     isMuted,
     previewLimitSeconds,
     togglePlay,
+    pauseTrack,
     seek,
     setVolume,
     toggleMute,
@@ -47,7 +55,15 @@ export default function PersistentAudioPlayer() {
   const [isMinimized, setIsMinimized] = useState(false);
   const progressBarRef = useRef(null);
 
-  if (!currentTrack) return null;
+  // Automatically pause playback if the user navigates away from the releases page
+  useEffect(() => {
+    if (!isReleasesPage && isPlaying) {
+      pauseTrack();
+    }
+  }, [isReleasesPage, isPlaying, pauseTrack]);
+
+  // Only render on the /releases page
+  if (!isReleasesPage || !currentTrack) return null;
 
   const handleProgressBarClick = (e) => {
     if (!progressBarRef.current) return;

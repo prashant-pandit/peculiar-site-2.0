@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   CheckCircle2,
   Clock,
@@ -12,6 +13,12 @@ import {
 import { useAudioPlayer } from "../../hooks";
 
 export default function PurchaseModal() {
+  const location = useLocation();
+  const isReleasesPage =
+    location.pathname === "/releases" ||
+    location.pathname.startsWith("/releases/") ||
+    location.pathname.startsWith("/musictrack");
+
   const {
     purchaseTrack,
     purchaseModalMeta,
@@ -31,7 +38,7 @@ export default function PurchaseModal() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closePurchaseModal]);
 
-  if (!purchaseTrack) return null;
+  if (!isReleasesPage || !purchaseTrack) return null;
 
   const handleProceedToPayment = () => {
     if (purchaseTrack.paymentUrl && purchaseTrack.paymentUrl.startsWith("http")) {
