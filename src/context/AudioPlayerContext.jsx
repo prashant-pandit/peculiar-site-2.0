@@ -1,17 +1,20 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { musicTracks } from "../constants";
+import { musicPlaylists, findPlaylistByTrackId } from "../constants";
 
 const AudioPlayerContext = createContext(null);
 
 export const PREVIEW_LIMIT_SECONDS = 45;
-const STORAGE_KEY_UNLOCKED = "pb_unlocked_tracks";
+const STORAGE_KEY_UNLOCKED = "pb_unlocked_playlists";
+const STORAGE_KEY_PAYMENTS = "pb_payment_ids";
 
 export function AudioPlayerProvider({ children }) {
   const audioRef = useRef(null);
   const currentTrackRef = useRef(null);
+  const currentPlaylistRef = useRef(null);
   const hasTriggeredLimitRef = useRef(false);
 
-  const [unlockedTrackIds, setUnlockedTrackIds] = useState(() => {
+  // Unlocked playlist IDs (persisted in localStorage)
+  const [unlockedPlaylistIds, setUnlockedPlaylistIds] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_UNLOCKED);
       return saved ? JSON.parse(saved) : [];
@@ -20,42 +23,90 @@ export function AudioPlayerProvider({ children }) {
     }
   });
 
+  // Payment IDs associated with unlocked playlists (for download link regeneration)
+  const [paymentIds, setPaymentIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PAYMENTS);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
   const [currentTrack, setCurrentTrack] = useState(null);
+  const [currentPlaylist, setCurrentPlaylist] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(0.85);
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [purchaseTrack, setPurchaseTrack] = useState(null);
+  const [purchasePlaylist, setPurchasePlaylist] = useState(null);
   const [purchaseModalMeta, setPurchaseModalMeta] = useState({});
   const [isPreviewGated, setIsPreviewGated] = useState(false);
 
-  // Sync ref with state
+  // Sync refs with state
   useEffect(() => {
     currentTrackRef.current = currentTrack;
   }, [currentTrack]);
 
-  const isTrackUnlocked = (trackId) => {
-    if (!trackId) return false;
-    return unlockedTrackIds.includes(trackId);
+  useEffect(() => {
+    currentPlaylistRef.current = currentPlaylist;
+  }, [currentPlaylist]);
+
+  /**
+   * Check if a playlist is unlocked (purchased or free)
+   */
+  const isPlaylistUnlocked = (playlistId) => {
+    if (!playlistId) return false;
+    // Free playlists are always unlocked
+    const playlist = musicPlaylists.find((p) => p.id === playlistId);
+    if (playlist?.isFree) return true;
+    return unlockedPlaylistIds.includes(playlistId);
   };
 
-  const unlockTrack = (trackId) => {
-    if (!trackId) return;
-    setUnlockedTrackIds((prev) => {
-      if (prev.includes(trackId)) return prev;
-      const updated = [...prev, trackId];
+  /**
+   * Check if a specific track is unlocked (via its parent playlist)
+   */
+  const isTrackUnlocked = (trackId) => {
+    if (!trackId) return false;
+    const playlist = findPlaylistByTrackId(trackId);
+    if (!playlist) return false;
+    return isPlaylistUnlocked(playlist.id);
+  };
+
+  /**
+   * Unlock a playlist after successful payment
+   */
+  const unlockPlaylist = (playlistId, paymentId = null) => {
+    if (!playlistId) return;
+
+    setUnlockedPlaylistIds((prev) => {
+      if (prev.includes(playlistId)) return prev;
+      const updated = [...prev, playlistId];
       try {
         localStorage.setItem(STORAGE_KEY_UNLOCKED, JSON.stringify(updated));
       } catch (err) {
-        console.warn("Failed to persist unlocked tracks in localStorage:", err);
+        console.warn("Failed to persist unlocked playlists:", err);
       }
       return updated;
     });
 
-    // If the currently playing track is the one unlocked, switch to full audio stream
-    if (currentTrackRef.current?.id === trackId && audioRef.current) {
+    // Store payment ID for download link regeneration
+    if (paymentId) {
+      setPaymentIds((prev) => {
+        const updated = { ...prev, [playlistId]: paymentId };
+        try {
+          localStorage.setItem(STORAGE_KEY_PAYMENTS, JSON.stringify(updated));
+        } catch (err) {
+          console.warn("Failed to persist payment IDs:", err);
+        }
+        return updated;
+      });
+    }
+
+    // If currently playing a track from this playlist, switch to full audio
+    if (currentTrackRef.current && currentPlaylistRef.current?.id === playlistId && audioRef.current) {
       const target = currentTrackRef.current;
       const fullUrl = target.fullAudioUrl || target.previewUrl;
       const savedTime = audioRef.current.currentTime;
@@ -67,6 +118,11 @@ export function AudioPlayerProvider({ children }) {
       audioRef.current.play().then(() => setIsPlaying(true)).catch((err) => console.warn(err));
     }
   };
+
+  /**
+   * Get the stored payment ID for a playlist (for download regeneration)
+   */
+  const getPaymentId = (playlistId) => paymentIds[playlistId] || null;
 
   // Initialize native HTML5 Audio instance once
   useEffect(() => {
@@ -83,9 +139,10 @@ export function AudioPlayerProvider({ children }) {
         setDuration(audio.duration);
       }
 
-      // If track is unlocked/purchased, NO preview cutoff applies (plays full length!)
+      // If track's parent playlist is unlocked, NO preview cutoff applies
       const track = currentTrackRef.current;
-      if (track && unlockedTrackIds.includes(track.id)) {
+      const playlist = currentPlaylistRef.current;
+      if (track && playlist && isPlaylistUnlocked(playlist.id)) {
         return;
       }
 
@@ -100,8 +157,8 @@ export function AudioPlayerProvider({ children }) {
         // Open modal ONLY ONCE when crossing the 45s threshold
         if (!hasTriggeredLimitRef.current) {
           hasTriggeredLimitRef.current = true;
-          if (currentTrackRef.current) {
-            setPurchaseTrack(currentTrackRef.current);
+          if (currentPlaylistRef.current) {
+            setPurchasePlaylist(currentPlaylistRef.current);
             setPurchaseModalMeta({ isLimitReached: true });
           }
         }
@@ -153,14 +210,19 @@ export function AudioPlayerProvider({ children }) {
       audio.pause();
       audio.src = "";
     };
-  }, [unlockedTrackIds]);
+  }, [unlockedPlaylistIds]);
 
-  const playTrack = (track, forceFull = false) => {
+  /**
+   * Play a specific track within a playlist context
+   */
+  const playTrack = (track, playlist = null, forceFull = false) => {
     if (!track) return;
     const audio = audioRef.current;
     if (!audio) return;
 
-    const isUnlocked = isTrackUnlocked(track.id) || forceFull;
+    // Resolve parent playlist if not provided
+    const resolvedPlaylist = playlist || findPlaylistByTrackId(track.id);
+    const isUnlocked = (resolvedPlaylist && isPlaylistUnlocked(resolvedPlaylist.id)) || forceFull;
 
     if (currentTrack?.id === track.id) {
       if (!isUnlocked && currentTime >= PREVIEW_LIMIT_SECONDS) {
@@ -183,11 +245,12 @@ export function AudioPlayerProvider({ children }) {
     hasTriggeredLimitRef.current = false;
     setIsPreviewGated(false);
     setCurrentTrack(track);
+    setCurrentPlaylist(resolvedPlaylist);
     setIsLoading(true);
     setCurrentTime(0);
     setDuration(track.durationSec || 0);
 
-    // Fetch full length audio from Cloudflare R2 if unlocked, else preview
+    // Fetch full length audio if unlocked, else preview
     const audioSource = isUnlocked
       ? track.fullAudioUrl || track.previewUrl
       : track.previewUrl;
@@ -213,16 +276,17 @@ export function AudioPlayerProvider({ children }) {
 
   const togglePlay = () => {
     if (!currentTrack) {
-      if (musicTracks.length > 0) {
-        playTrack(musicTracks[0]);
+      // Play the first track of the first playlist
+      if (musicPlaylists.length > 0 && musicPlaylists[0].tracks.length > 0) {
+        playTrack(musicPlaylists[0].tracks[0], musicPlaylists[0]);
       }
       return;
     }
 
-    const isUnlocked = isTrackUnlocked(currentTrack.id);
+    const isUnlocked = currentPlaylist && isPlaylistUnlocked(currentPlaylist.id);
 
     if (!isUnlocked && currentTime >= PREVIEW_LIMIT_SECONDS) {
-      openPurchaseModal(currentTrack, { isLimitReached: true });
+      openPurchaseModal(currentPlaylist, { isLimitReached: true });
       return;
     }
 
@@ -236,15 +300,15 @@ export function AudioPlayerProvider({ children }) {
   const seek = (fraction) => {
     if (!audioRef.current || isNaN(fraction)) return;
     let targetTime = Math.max(0, Math.min(fraction * (duration || 1), duration));
-    const isUnlocked = currentTrack && isTrackUnlocked(currentTrack.id);
+    const isUnlocked = currentPlaylist && isPlaylistUnlocked(currentPlaylist.id);
 
-    // Enforce 45s preview limit ceiling ONLY if track is NOT unlocked
+    // Enforce 45s preview limit ceiling ONLY if playlist is NOT unlocked
     if (!isUnlocked && targetTime >= PREVIEW_LIMIT_SECONDS) {
       targetTime = PREVIEW_LIMIT_SECONDS;
       setIsPreviewGated(true);
       if (!hasTriggeredLimitRef.current) {
         hasTriggeredLimitRef.current = true;
-        openPurchaseModal(currentTrack, { isLimitReached: true });
+        openPurchaseModal(currentPlaylist, { isLimitReached: true });
       }
     } else {
       setIsPreviewGated(false);
@@ -274,35 +338,53 @@ export function AudioPlayerProvider({ children }) {
     audioRef.current.muted = nextMuted;
   };
 
+  /**
+   * Navigate to the next track within the current playlist
+   */
   const handleNext = () => {
-    if (!currentTrack || musicTracks.length === 0) return;
+    if (!currentTrack || !currentPlaylist) return;
     hasTriggeredLimitRef.current = false;
     setIsPreviewGated(false);
-    const currentIndex = musicTracks.findIndex((t) => t.id === currentTrack.id);
-    const nextIndex = (currentIndex + 1) % musicTracks.length;
-    playTrack(musicTracks[nextIndex]);
+
+    const tracks = currentPlaylist.tracks;
+    const currentIndex = tracks.findIndex((t) => t.id === currentTrack.id);
+    const nextIndex = (currentIndex + 1) % tracks.length;
+    playTrack(tracks[nextIndex], currentPlaylist);
   };
 
+  /**
+   * Navigate to the previous track within the current playlist
+   */
   const handlePrev = () => {
-    if (!currentTrack || musicTracks.length === 0) return;
+    if (!currentTrack || !currentPlaylist) return;
     if (currentTime > 3) {
       seek(0);
       return;
     }
     hasTriggeredLimitRef.current = false;
     setIsPreviewGated(false);
-    const currentIndex = musicTracks.findIndex((t) => t.id === currentTrack.id);
-    const prevIndex = (currentIndex - 1 + musicTracks.length) % musicTracks.length;
-    playTrack(musicTracks[prevIndex]);
+
+    const tracks = currentPlaylist.tracks;
+    const currentIndex = tracks.findIndex((t) => t.id === currentTrack.id);
+    const prevIndex = (currentIndex - 1 + tracks.length) % tracks.length;
+    playTrack(tracks[prevIndex], currentPlaylist);
   };
 
-  const openPurchaseModal = (track, meta = {}) => {
-    setPurchaseTrack(track || currentTrack);
+  /**
+   * Get current track index within the playlist (1-based)
+   */
+  const getCurrentTrackIndex = () => {
+    if (!currentTrack || !currentPlaylist) return 0;
+    return currentPlaylist.tracks.findIndex((t) => t.id === currentTrack.id) + 1;
+  };
+
+  const openPurchaseModal = (playlist, meta = {}) => {
+    setPurchasePlaylist(playlist || currentPlaylist);
     setPurchaseModalMeta(meta);
   };
 
   const closePurchaseModal = () => {
-    setPurchaseTrack(null);
+    setPurchasePlaylist(null);
     setPurchaseModalMeta({});
   };
 
@@ -322,6 +404,7 @@ export function AudioPlayerProvider({ children }) {
     <AudioPlayerContext.Provider
       value={{
         currentTrack,
+        currentPlaylist,
         isPlaying,
         isLoading,
         currentTime,
@@ -329,13 +412,15 @@ export function AudioPlayerProvider({ children }) {
         progress,
         volume,
         isMuted,
-        purchaseTrack,
+        purchasePlaylist,
         purchaseModalMeta,
         isPreviewGated,
         previewLimitSeconds: PREVIEW_LIMIT_SECONDS,
-        unlockedTrackIds,
+        unlockedPlaylistIds,
+        isPlaylistUnlocked,
         isTrackUnlocked,
-        unlockTrack,
+        unlockPlaylist,
+        getPaymentId,
         playTrack,
         pauseTrack,
         togglePlay,
@@ -344,6 +429,7 @@ export function AudioPlayerProvider({ children }) {
         toggleMute,
         playNext: handleNext,
         playPrev: handlePrev,
+        getCurrentTrackIndex,
         openPurchaseModal,
         closePurchaseModal,
         replayPreview,

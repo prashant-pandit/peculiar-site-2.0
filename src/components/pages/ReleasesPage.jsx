@@ -4,56 +4,74 @@ import {
   ArrowUpDown,
   Check,
   CheckCircle,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Disc3,
   Download,
   Filter,
   Flame,
+  Gift,
+  Loader2,
   Music2,
   Pause,
   Play,
   Search,
   Sparkles,
+  Timer,
   Zap,
 } from "lucide-react";
-import { musicTracks, trackGenres } from "../../constants";
+import { musicPlaylists, playlistGenres } from "../../constants";
 import { useAudioPlayer } from "../../hooks";
+import { generateDownloadLinks } from "../../utils";
 import { EqualizerBars, VinylMark } from "../ui";
 
 export default function ReleasesPage() {
   const [searchParams] = useSearchParams();
   const deepLinkTrackId = searchParams.get("track");
   const paymentStatus = searchParams.get("payment");
-  const purchasedTrackId = searchParams.get("track");
+  const purchasedPlaylistId = searchParams.get("playlist");
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState("All Tracks");
+  const [selectedGenre, setSelectedGenre] = useState("All Playlists");
   const [sortBy, setSortBy] = useState("featured"); // 'featured' | 'bpm-asc' | 'bpm-desc' | 'latest'
-  const [highlightedTrackId, setHighlightedTrackId] = useState(null);
+  const [highlightedPlaylistId, setHighlightedPlaylistId] = useState(null);
+  const [expandedPlaylistId, setExpandedPlaylistId] = useState(null);
+
+  // Download state for post-purchase
+  const [downloadLinks, setDownloadLinks] = useState({});
+  const [downloadLoading, setDownloadLoading] = useState({});
 
   const {
     currentTrack,
+    currentPlaylist,
     isPlaying,
-    isTrackUnlocked,
-    unlockTrack,
+    isPlaylistUnlocked,
+    unlockPlaylist,
     playTrack,
     openPurchaseModal,
+    getPaymentId,
   } = useAudioPlayer();
 
-  const trackRefs = useRef({});
+  const playlistRefs = useRef({});
 
-  // Deep Link Instagram Handler
+  // Deep Link Handler
   useEffect(() => {
     if (deepLinkTrackId && paymentStatus !== "success") {
-      const matched = musicTracks.find(
-        (t) => t.id.toLowerCase() === deepLinkTrackId.toLowerCase(),
+      // Find the playlist containing this track
+      const matched = musicPlaylists.find((p) =>
+        p.tracks.some((t) => t.id.toLowerCase() === deepLinkTrackId.toLowerCase())
       );
       if (matched) {
-        setHighlightedTrackId(matched.id);
-        playTrack(matched);
+        const matchedTrack = matched.tracks.find(
+          (t) => t.id.toLowerCase() === deepLinkTrackId.toLowerCase()
+        );
+        setHighlightedPlaylistId(matched.id);
+        setExpandedPlaylistId(matched.id);
+        if (matchedTrack) playTrack(matchedTrack, matched);
 
         setTimeout(() => {
-          const el = trackRefs.current[matched.id];
+          const el = playlistRefs.current[matched.id];
           if (el) {
             el.scrollIntoView({ behavior: "smooth", block: "center" });
           }
@@ -64,65 +82,92 @@ export default function ReleasesPage() {
     }
   }, [deepLinkTrackId, paymentStatus]);
 
-  // Payment Success Handler: Unlock & Play Full Length Audio from Cloudflare R2
+  // Payment Success Handler
   useEffect(() => {
-    if (paymentStatus === "success" && purchasedTrackId) {
-      unlockTrack(purchasedTrackId);
-      const matched = musicTracks.find(
-        (t) => t.id.toLowerCase() === purchasedTrackId.toLowerCase(),
+    if (paymentStatus === "success" && purchasedPlaylistId) {
+      unlockPlaylist(purchasedPlaylistId);
+      const matched = musicPlaylists.find(
+        (p) => p.id.toLowerCase() === purchasedPlaylistId.toLowerCase()
       );
       if (matched) {
-        playTrack(matched, true);
+        setExpandedPlaylistId(matched.id);
+        // Play the first track of the purchased playlist
+        if (matched.tracks.length > 0) {
+          playTrack(matched.tracks[0], matched, true);
+        }
         setTimeout(() => {
-          const el = trackRefs.current[matched.id];
+          const el = playlistRefs.current[matched.id];
           if (el) {
             el.scrollIntoView({ behavior: "smooth", block: "center" });
           }
         }, 300);
       }
     }
-  }, [paymentStatus, purchasedTrackId]);
+  }, [paymentStatus, purchasedPlaylistId]);
 
-  // Filter & Sort Tracks
-  const filteredTracks = useMemo(() => {
-    return musicTracks
-      .filter((track) => {
+  // Filter & Sort Playlists
+  const filteredPlaylists = useMemo(() => {
+    return musicPlaylists
+      .filter((playlist) => {
         const matchesGenre =
-          selectedGenre === "All Tracks" || track.genre === selectedGenre;
+          selectedGenre === "All Playlists" || playlist.genre === selectedGenre;
         const matchesSearch =
-          track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          track.genre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          track.tags?.some((tag) =>
-            tag.toLowerCase().includes(searchQuery.toLowerCase()),
+          playlist.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          playlist.genre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          playlist.tags?.some((tag) =>
+            tag.toLowerCase().includes(searchQuery.toLowerCase())
           ) ||
-          track.bpm.toString().includes(searchQuery);
+          playlist.tracks.some(
+            (t) =>
+              t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              t.bpm.toString().includes(searchQuery)
+          );
         return matchesGenre && matchesSearch;
       })
       .sort((a, b) => {
-        if (sortBy === "bpm-asc") return a.bpm - b.bpm;
-        if (sortBy === "bpm-desc") return b.bpm - a.bpm;
         if (sortBy === "latest")
           return new Date(b.releaseDate) - new Date(a.releaseDate);
+        if (sortBy === "bpm-asc")
+          return (a.tracks[0]?.bpm || 0) - (b.tracks[0]?.bpm || 0);
+        if (sortBy === "bpm-desc")
+          return (b.tracks[0]?.bpm || 0) - (a.tracks[0]?.bpm || 0);
         return 0;
       });
   }, [searchQuery, selectedGenre, sortBy]);
 
-  const purchasedTrack = purchasedTrackId
-    ? musicTracks.find((t) => t.id.toLowerCase() === purchasedTrackId.toLowerCase())
+  const purchasedPlaylist = purchasedPlaylistId
+    ? musicPlaylists.find((p) => p.id.toLowerCase() === purchasedPlaylistId.toLowerCase())
     : null;
 
-  const handleDownloadTrack = (track) => {
-    const downloadLink = track.downloadUrl || track.fullAudioUrl || track.previewUrl;
-    if (downloadLink && downloadLink.startsWith("http")) {
+  // Handle download for a playlist (generates expiring links)
+  const handleDownloadPlaylist = async (playlist) => {
+    const playlistId = playlist.id;
+    setDownloadLoading((prev) => ({ ...prev, [playlistId]: true }));
+
+    try {
+      const paymentId = getPaymentId(playlistId);
+      const links = await generateDownloadLinks({
+        playlistId,
+        paymentId,
+      });
+      setDownloadLinks((prev) => ({ ...prev, [playlistId]: links }));
+    } catch (err) {
+      console.error("Download link generation error:", err);
+      alert("Failed to generate download links. Please try again.");
+    } finally {
+      setDownloadLoading((prev) => ({ ...prev, [playlistId]: false }));
+    }
+  };
+
+  const handleDownloadTrack = (link) => {
+    if (link.downloadUrl) {
       const a = document.createElement("a");
-      a.href = downloadLink;
-      a.download = `${track.id}-master.mp3`;
+      a.href = link.downloadUrl;
+      a.download = `${link.trackId}-master.wav`;
       a.target = "_blank";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    } else {
-      alert(`Downloading Lossless 24-bit WAV Master + 320kbps MP3 for ${track.title}!`);
     }
   };
 
@@ -138,30 +183,78 @@ export default function ReleasesPage() {
               </span>
               <div>
                 <div className="text-xs font-bold uppercase tracking-wider text-green-400">
-                  Payment Confirmed • Full Master Audio Unlocked
+                  Payment Confirmed • Full Playlist Unlocked
                 </div>
                 <div className="text-sm font-medium text-white mt-0.5">
                   Thank you for supporting Peculiar Beats!{" "}
-                  {purchasedTrack && (
+                  {purchasedPlaylist && (
                     <span>
-                      Now playing the uncut studio master for <strong>{purchasedTrack.title}</strong>.
+                      <strong>{purchasedPlaylist.title}</strong> — {purchasedPlaylist.tracks.length} tracks unlocked.
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => purchasedTrack && handleDownloadTrack(purchasedTrack)}
-              className="flex items-center gap-2 rounded-xl bg-green-500 px-5 py-2.5 font-syne text-xs font-bold text-black hover:bg-green-400 transition-all whitespace-nowrap shadow-lg shadow-green-500/20 active:scale-95"
-            >
-              <Download size={15} />
-              <span>Download Master WAV</span>
-            </button>
+            {purchasedPlaylist && (
+              <button
+                onClick={() => handleDownloadPlaylist(purchasedPlaylist)}
+                disabled={downloadLoading[purchasedPlaylist.id]}
+                className="flex items-center gap-2 rounded-xl bg-green-500 px-5 py-2.5 font-syne text-xs font-bold text-black hover:bg-green-400 transition-all whitespace-nowrap shadow-lg shadow-green-500/20 active:scale-95 disabled:opacity-75"
+              >
+                {downloadLoading[purchasedPlaylist.id] ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    <span>Generating Links...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download size={15} />
+                    <span>Download All Tracks</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Download Links Panel (appears after clicking download) */}
+        {purchasedPlaylist && downloadLinks[purchasedPlaylist.id] && (
+          <div className="mb-8 rounded-2xl border border-green-500/20 bg-surface-container/30 p-5 animate-fadeIn">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Download size={16} className="text-green-400" />
+                <span className="text-sm font-bold text-white">Download Links</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] text-yellow-300/80">
+                <Timer size={12} />
+                <span>Links expire in ~1 hour</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {downloadLinks[purchasedPlaylist.id].map((link) => (
+                <div
+                  key={link.trackId}
+                  className="flex items-center justify-between rounded-xl bg-surface-container/50 border border-outline-variant/20 px-4 py-2.5"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <Music2 size={14} className="text-primary/60 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-white truncate">{link.title}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDownloadTrack(link)}
+                    className="flex items-center gap-1.5 text-xs font-bold text-green-400 hover:text-green-300 transition-colors flex-shrink-0 ml-3"
+                  >
+                    <Download size={13} />
+                    <span>WAV</span>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Deep Link Notification Banner */}
-        {highlightedTrackId && !paymentStatus && (
+        {highlightedPlaylistId && !paymentStatus && (
           <div className="mb-8 flex items-center justify-between rounded-xl border border-primary/40 bg-primary/10 p-4 backdrop-blur-md animate-fadeIn">
             <div className="flex items-center gap-3">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-black font-bold">
@@ -175,7 +268,7 @@ export default function ReleasesPage() {
                   Viewing & Playing:{" "}
                   <strong>
                     {
-                      musicTracks.find((t) => t.id === highlightedTrackId)
+                      musicPlaylists.find((p) => p.id === highlightedPlaylistId)
                         ?.title
                     }
                   </strong>
@@ -183,7 +276,7 @@ export default function ReleasesPage() {
               </div>
             </div>
             <button
-              onClick={() => setHighlightedTrackId(null)}
+              onClick={() => setHighlightedPlaylistId(null)}
               className="text-xs text-on-surface-variant hover:text-white underline"
             >
               Dismiss
@@ -207,19 +300,19 @@ export default function ReleasesPage() {
             </h1>
 
             <p className="mt-4 text-sm text-on-surface-variant sm:text-base leading-relaxed">
-              Explore official releases, VIP dubplates, and festival peak-time
-              mixes. Listen to high-fidelity audio streams or purchase 24-bit
-              studio master WAVs with instant delivery for your DJ sets.
+              Explore official release playlists, VIP dubplates, and festival peak-time
+              collections. Stream high-fidelity previews or purchase full playlist bundles with
+              instant 24-bit master WAV delivery via UPI QR scan.
             </p>
 
             {/* Quick Stats Banner */}
             <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 pt-6 border-t border-outline-variant/20">
               <div>
                 <div className="font-syne text-2xl font-bold text-white">
-                  {musicTracks.length}+
+                  {musicPlaylists.length}
                 </div>
                 <div className="text-xs text-on-surface-variant font-mono">
-                  Catalog Tracks
+                  Playlists
                 </div>
               </div>
               <div>
@@ -232,10 +325,10 @@ export default function ReleasesPage() {
               </div>
               <div>
                 <div className="font-syne text-2xl font-bold text-white">
-                  100%
+                  QR Scan
                 </div>
                 <div className="text-xs text-on-surface-variant font-mono">
-                  Club Tested
+                  UPI Payment
                 </div>
               </div>
               <div>
@@ -243,7 +336,7 @@ export default function ReleasesPage() {
                   Instant
                 </div>
                 <div className="text-xs text-on-surface-variant font-mono">
-                  Razorpay Checkout
+                  Secure Download
                 </div>
               </div>
             </div>
@@ -254,7 +347,7 @@ export default function ReleasesPage() {
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Genre Pills */}
           <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {trackGenres.map((genre) => (
+            {playlistGenres.map((genre) => (
               <button
                 key={genre}
                 onClick={() => setSelectedGenre(genre)}
@@ -281,7 +374,7 @@ export default function ReleasesPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search title, BPM, genre..."
+                placeholder="Search playlists, tracks, BPM..."
                 className="w-full rounded-xl border border-outline-variant/40 bg-surface-container/50 py-2 pl-9 pr-4 text-xs text-white placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
@@ -291,7 +384,7 @@ export default function ReleasesPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                aria-label="Sort tracks by"
+                aria-label="Sort playlists by"
                 className="appearance-none rounded-xl border border-outline-variant/40 bg-surface-container/50 py-2 pl-3 pr-8 text-xs font-semibold text-white focus:border-primary focus:outline-none"
               >
                 <option value="featured" className="bg-[#140c1a]">
@@ -315,12 +408,12 @@ export default function ReleasesPage() {
           </div>
         </div>
 
-        {/* Track Grid */}
-        {filteredTracks.length === 0 ? (
+        {/* Playlist Grid */}
+        {filteredPlaylists.length === 0 ? (
           <div className="rounded-2xl border border-outline-variant/20 bg-surface-container/20 p-12 text-center">
             <Music2 size={36} className="mx-auto text-on-surface-variant/50" />
             <h3 className="mt-3 font-syne text-lg font-bold text-white">
-              No tracks found
+              No playlists found
             </h3>
             <p className="mt-1 text-xs text-on-surface-variant">
               Try adjusting your search query or selecting a different genre filter.
@@ -328,17 +421,20 @@ export default function ReleasesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredTracks.map((track) => {
-              const isCurrentPlaying =
-                currentTrack?.id === track.id && isPlaying;
-              const isHighlighted = highlightedTrackId === track.id;
-              const isUnlocked = isTrackUnlocked(track.id);
+            {filteredPlaylists.map((playlist) => {
+              const isCurrentPlaylist = currentPlaylist?.id === playlist.id;
+              const isCurrentPlaying = isCurrentPlaylist && isPlaying;
+              const isHighlighted = highlightedPlaylistId === playlist.id;
+              const isUnlocked = isPlaylistUnlocked(playlist.id);
+              const isExpanded = expandedPlaylistId === playlist.id;
+              const isFree = playlist.isFree;
+              const playlistDownloads = downloadLinks[playlist.id];
 
               return (
                 <div
-                  key={track.id}
-                  ref={(el) => (trackRefs.current[track.id] = el)}
-                  className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-[#140c1a]/90 p-4 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1 ${
+                  key={playlist.id}
+                  ref={(el) => (playlistRefs.current[playlist.id] = el)}
+                  className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-[#140c1a]/90 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1 ${
                     isHighlighted
                       ? "border-primary ring-2 ring-primary/50"
                       : "border-outline-variant/30"
@@ -351,23 +447,23 @@ export default function ReleasesPage() {
                 >
                   {/* Artwork & Play overlay */}
                   <div>
-                    <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-surface-container">
+                    <div className="relative aspect-square w-full overflow-hidden bg-surface-container">
                       <img
-                        src={track.coverArt}
-                        alt={track.title}
+                        src={playlist.coverArt}
+                        alt={playlist.title}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                      {/* Play / Pause overlay trigger */}
+                      {/* Play overlay — plays first track */}
                       <button
-                        onClick={() => playTrack(track)}
+                        onClick={() => playTrack(playlist.tracks[0], playlist)}
                         className={`absolute inset-0 flex items-center justify-center transition-all ${
                           isCurrentPlaying
                             ? "bg-black/40 opacity-100"
                             : "bg-black/30 opacity-0 group-hover:opacity-100"
                         }`}
-                        aria-label={isCurrentPlaying ? "Pause audio" : "Play audio"}
+                        aria-label={isCurrentPlaying ? "Pause audio" : "Play playlist"}
                       >
                         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-primary to-[#ff00bf] text-black transition-transform hover:scale-110">
                           {isCurrentPlaying ? (
@@ -382,16 +478,20 @@ export default function ReleasesPage() {
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
                         {isUnlocked ? (
                           <span className="inline-flex items-center gap-1 rounded-md bg-black/80 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-green-400 border border-green-500/40">
-                            <CheckCircle size={10} /> Unlocked Master
+                            <CheckCircle size={10} /> Unlocked
+                          </span>
+                        ) : isFree ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-black/80 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 border border-emerald-500/40">
+                            <Gift size={10} /> Free Download
                           </span>
                         ) : (
                           <>
-                            {track.isExclusive && (
+                            {playlist.isExclusive && (
                               <span className="inline-flex items-center gap-1 rounded-md bg-black/80 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary border border-primary/30">
                                 <Sparkles size={10} /> Exclusive
                               </span>
                             )}
-                            {track.isPopular && (
+                            {playlist.isPopular && (
                               <span className="inline-flex items-center gap-1 rounded-md bg-black/80 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#ffb960] border border-[#ffb960]/30">
                                 <Flame size={10} /> Popular
                               </span>
@@ -403,7 +503,7 @@ export default function ReleasesPage() {
                       {/* Bottom Info on Artwork */}
                       <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
                         <span className="rounded bg-black/80 backdrop-blur-md px-2 py-0.5 text-[11px] font-mono font-medium text-white border border-white/10">
-                          {track.bpm} BPM • {track.key}
+                          {playlist.tracks.length} Tracks
                         </span>
                         {isCurrentPlaying && (
                           <div className="bg-black/80 backdrop-blur-md px-2 py-1 rounded flex items-center gap-1.5 border border-primary/30">
@@ -416,29 +516,29 @@ export default function ReleasesPage() {
                       </div>
                     </div>
 
-                    {/* Metadata Details */}
-                    <div className="mt-4">
+                    {/* Metadata */}
+                    <div className="p-4">
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="text-[11px] font-mono uppercase tracking-wider text-primary">
-                            {track.genre}
+                            {playlist.genre}
                           </div>
                           <h3 className="font-syne text-lg font-bold text-white group-hover:text-primary transition-colors">
-                            {track.title}
+                            {playlist.title}
                           </h3>
                         </div>
-                        <span className="font-syne text-base font-bold text-white flex-shrink-0">
-                          {track.priceInr || track.price}
+                        <span className={`font-syne text-base font-bold flex-shrink-0 ${isFree ? "text-emerald-400" : "text-white"}`}>
+                          {isFree ? "Free" : playlist.priceInr || playlist.price}
                         </span>
                       </div>
 
                       <p className="mt-1 text-xs text-on-surface-variant line-clamp-2">
-                        {track.description}
+                        {playlist.description}
                       </p>
 
                       {/* Tags */}
                       <div className="mt-3 flex flex-wrap gap-1.5">
-                        {track.tags.map((tag) => (
+                        {playlist.tags.map((tag) => (
                           <span
                             key={tag}
                             className="rounded-md bg-surface-container/60 px-2 py-0.5 text-[10px] font-mono text-on-surface-variant border border-outline-variant/20"
@@ -447,45 +547,126 @@ export default function ReleasesPage() {
                           </span>
                         ))}
                       </div>
+
+                      {/* Expandable Track List */}
+                      <button
+                        onClick={() => setExpandedPlaylistId(isExpanded ? null : playlist.id)}
+                        className="mt-3 flex items-center gap-1 text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors"
+                      >
+                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        {isExpanded ? "Hide Tracklist" : `View ${playlist.tracks.length} Tracks`}
+                      </button>
+
+                      {isExpanded && (
+                        <div className="mt-3 rounded-xl border border-outline-variant/15 bg-surface-container/20 divide-y divide-outline-variant/10 animate-fadeIn">
+                          {playlist.tracks.map((track, idx) => {
+                            const isTrackPlaying = currentTrack?.id === track.id && isPlaying;
+
+                            return (
+                              <button
+                                key={track.id}
+                                onClick={() => playTrack(track, playlist)}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-white/5 transition-colors"
+                              >
+                                <span className="text-[10px] font-mono text-on-surface-variant w-4 text-center flex-shrink-0">
+                                  {isTrackPlaying ? (
+                                    <EqualizerBars />
+                                  ) : (
+                                    idx + 1
+                                  )}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <div className={`text-xs font-semibold truncate ${isTrackPlaying ? "text-primary" : "text-white"}`}>
+                                    {track.title}
+                                  </div>
+                                  <div className="text-[10px] text-on-surface-variant truncate">
+                                    {track.bpm} BPM • {track.key} • {track.duration}
+                                  </div>
+                                </div>
+                                {isTrackPlaying ? (
+                                  <Pause size={12} className="text-primary flex-shrink-0" />
+                                ) : (
+                                  <Play size={12} className="text-on-surface-variant/50 flex-shrink-0" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Download links panel (shown after generating) */}
+                      {playlistDownloads && isExpanded && (
+                        <div className="mt-3 rounded-xl border border-green-500/20 bg-green-950/10 p-3 animate-fadeIn">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <Download size={12} className="text-green-400" />
+                            <span className="text-[10px] font-bold text-green-400 uppercase tracking-wider">Download Links</span>
+                            <span className="text-[9px] text-yellow-300/60 ml-auto flex items-center gap-0.5">
+                              <Timer size={10} /> Expires in ~1hr
+                            </span>
+                          </div>
+                          {playlistDownloads.map((link) => (
+                            <button
+                              key={link.trackId}
+                              onClick={() => handleDownloadTrack(link)}
+                              className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-white hover:text-green-400 transition-colors"
+                            >
+                              <span className="truncate">{link.title}</span>
+                              <Download size={12} className="flex-shrink-0 ml-2" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Card Bottom CTA Actions */}
-                  <div className="mt-5 pt-4 border-t border-outline-variant/20 flex items-center gap-2">
-                    <button
-                      onClick={() => playTrack(track)}
-                      className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2.5 px-3 text-xs font-semibold transition-all ${
-                        isCurrentPlaying
-                          ? "bg-primary/20 text-primary border border-primary/40"
-                          : "bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30"
-                      }`}
-                    >
-                      {isCurrentPlaying ? (
-                        <>
-                          <Pause size={14} /> Playing
-                        </>
-                      ) : (
-                        <>
-                          <Play size={14} /> {isUnlocked ? "Play Master" : "Preview"}
-                        </>
-                      )}
-                    </button>
+                  <div className="px-4 pb-4 pt-0">
+                    <div className="pt-4 border-t border-outline-variant/20 flex items-center gap-2">
+                      <button
+                        onClick={() => playTrack(playlist.tracks[0], playlist)}
+                        className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2.5 px-3 text-xs font-semibold transition-all ${
+                          isCurrentPlaying
+                            ? "bg-primary/20 text-primary border border-primary/40"
+                            : "bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30"
+                        }`}
+                      >
+                        {isCurrentPlaying ? (
+                          <>
+                            <Pause size={14} /> Playing
+                          </>
+                        ) : (
+                          <>
+                            <Play size={14} /> {isUnlocked ? "Play All" : "Preview"}
+                          </>
+                        )}
+                      </button>
 
-                    {isUnlocked ? (
-                      <button
-                        onClick={() => handleDownloadTrack(track)}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-400 py-2.5 px-3 text-xs font-syne font-bold text-black hover:brightness-110 active:scale-[0.98] transition-all shadow-md shadow-green-500/20"
-                      >
-                        <Download size={14} /> Download WAV
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => openPurchaseModal(track)}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-[#ff00bf] py-2.5 px-3 text-xs font-syne font-bold text-black hover:brightness-110 active:scale-[0.98] transition-all"
-                      >
-                        <Download size={14} /> Buy & Download
-                      </button>
-                    )}
+                      {isUnlocked || isFree ? (
+                        <button
+                          onClick={() => handleDownloadPlaylist(playlist)}
+                          disabled={downloadLoading[playlist.id]}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-400 py-2.5 px-3 text-xs font-syne font-bold text-black hover:brightness-110 active:scale-[0.98] transition-all shadow-md shadow-green-500/20 disabled:opacity-75"
+                        >
+                          {downloadLoading[playlist.id] ? (
+                            <>
+                              <Loader2 size={14} className="animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Download size={14} /> {isFree && !isUnlocked ? "Free Download" : "Download All"}
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => openPurchaseModal(playlist)}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-[#ff00bf] py-2.5 px-3 text-xs font-syne font-bold text-black hover:brightness-110 active:scale-[0.98] transition-all"
+                        >
+                          <Download size={14} /> Buy & Download
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

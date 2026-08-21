@@ -113,3 +113,141 @@ export function verifyPaymentSignature(data) {
     payment_id: razorpay_payment_id,
   };
 }
+
+// Default QR code expiry: 10 minutes
+const QR_EXPIRY_MINUTES = 10;
+
+/**
+ * Creates a Razorpay UPI QR Code for a single-use payment
+ * @param {Object} data - { amount (INR), currency, playlistId, playlistTitle }
+ * @returns {Promise<{ qr_id: string, image_url: string, amount: number, close_by: number }>}
+ */
+export async function createQRCode(data) {
+  const { amount, currency = "INR", playlistId, playlistTitle } = data;
+
+  if (!amount || isNaN(amount)) {
+    const error = new Error("Amount is required and must be a number.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Convert to paise (1 INR = 100 paise)
+  const amountInPaise = Math.round(amount * 100);
+
+  if (amountInPaise < 100) {
+    const error = new Error("Amount must be at least 100 paise (₹1.00).");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const razorpay = getRazorpayInstance();
+
+  // QR expires in 10 minutes from now (Unix timestamp in seconds)
+  const closeBy = Math.floor(Date.now() / 1000) + QR_EXPIRY_MINUTES * 60;
+
+  const options = {
+    type: "upi_qr",
+    name: "Peculiar Beats",
+    usage: "single_use",
+    fixed_amount: true,
+    payment_amount: amountInPaise,
+    description: playlistTitle
+      ? `${playlistTitle} - Lossless Master WAV + MP3`
+      : "Peculiar Beats - Music Purchase",
+    close_by: closeBy,
+    notes: {
+      playlist_id: playlistId || "",
+      playlist_title: playlistTitle || "",
+    },
+  };
+
+  try {
+    const qrCode = await razorpay.qrCode.create(options);
+    return {
+      qr_id: qrCode.id,
+      image_url: qrCode.image_url,
+      amount: qrCode.payment_amount,
+      close_by: qrCode.close_by,
+      status: qrCode.status,
+    };
+  } catch (err) {
+    console.error("Razorpay QR creation error:", err);
+    const error = new Error(err.description || err.message || "Failed to create QR code.");
+    error.statusCode = err.statusCode || 500;
+    throw error;
+  }
+}
+
+/**
+ * Checks the payment status of a Razorpay QR code
+ * @param {string} qrId - The QR code ID to check
+ * @returns {Promise<{ paid: boolean, status: string, payment_id: string|null, close_reason: string|null }>}
+ */
+export async function checkQRPaymentStatus(qrId) {
+  if (!qrId) {
+    const error = new Error("QR code ID is required.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const razorpay = getRazorpayInstance();
+
+  try {
+    const qrCode = await razorpay.qrCode.fetch(qrId);
+
+    // Razorpay QR status: "active" | "closed"
+    // close_reason: "paid" | "closed" (manually) | null (still active)
+    const isPaid = qrCode.close_reason === "paid" || qrCode.payments_count_received > 0;
+
+    // Extract payment ID from payments if available
+    let paymentId = null;
+    if (isPaid && qrCode.payments && qrCode.payments.items && qrCode.payments.items.length > 0) {
+      paymentId = qrCode.payments.items[0].id;
+    }
+
+    return {
+      paid: isPaid,
+      status: qrCode.status,
+      payment_id: paymentId,
+      close_reason: qrCode.close_reason,
+      payments_count: qrCode.payments_count_received || 0,
+    };
+  } catch (err) {
+    console.error("Razorpay QR status check error:", err);
+    const error = new Error(err.description || err.message || "Failed to check QR payment status.");
+    error.statusCode = err.statusCode || 500;
+    throw error;
+  }
+}
+
+/**
+ * Fetches payment details from Razorpay to validate a payment
+ * @param {string} paymentId - Razorpay payment ID
+ * @returns {Promise<Object>} Payment details from Razorpay
+ */
+export async function fetchPaymentDetails(paymentId) {
+  if (!paymentId) {
+    const error = new Error("Payment ID is required.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const razorpay = getRazorpayInstance();
+
+  try {
+    const payment = await razorpay.payments.fetch(paymentId);
+    return {
+      id: payment.id,
+      amount: payment.amount,
+      currency: payment.currency,
+      status: payment.status,
+      method: payment.method,
+      notes: payment.notes || {},
+    };
+  } catch (err) {
+    console.error("Razorpay payment fetch error:", err);
+    const error = new Error(err.description || err.message || "Failed to fetch payment details.");
+    error.statusCode = err.statusCode || 500;
+    throw error;
+  }
+}

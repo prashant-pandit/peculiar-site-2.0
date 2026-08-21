@@ -1,7 +1,11 @@
 /**
- * Razorpay Standard Web Checkout Integration
- * Handles order creation, modal launch, and server-side signature verification.
+ * Razorpay Payment Integration
+ * Supports two payment flows:
+ * 1. QR Code Payment (primary) — UPI QR scan for smooth mobile payments
+ * 2. Standard Checkout Modal (fallback) — For card/netbanking when QR is unavailable
  */
+
+// ─── Razorpay Script Loader ──────────────────────────────────────────────────
 
 export function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -21,32 +25,189 @@ export function loadRazorpayScript() {
   });
 }
 
+// ─── QR Code Payment Flow (Primary) ─────────────────────────────────────────
+
+let qrPollingInterval = null;
+
 /**
- * Initiates Razorpay Standard Checkout
+ * Creates a Razorpay UPI QR code for a playlist purchase
  * @param {Object} options
- * @param {Object} options.track - Music track object
+ * @param {Object} options.playlist - Playlist object with id, title, priceInr, priceInPaise
+ * @param {Function} options.onQRReady - Callback with { qr_id, image_url, close_by }
+ * @param {Function} options.onPaymentSuccess - Callback with { payment_id, qr_id }
+ * @param {Function} options.onError - Callback with error message
+ * @param {Function} [options.onExpired] - Callback when QR expires
+ */
+export async function createPaymentQR({
+  playlist,
+  onQRReady,
+  onPaymentSuccess,
+  onError,
+  onExpired,
+}) {
+  try {
+    // Extract numeric amount from priceInr (e.g., "₹399" → 399)
+    let amount = 399;
+    if (playlist.priceInr && playlist.priceInr !== "Free") {
+      const match = playlist.priceInr.match(/\d+/);
+      if (match) amount = parseInt(match[0], 10);
+    }
+
+    // Step 1: Create QR code via backend
+    const res = await fetch("/api/create-qr", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount,
+        currency: "INR",
+        playlistId: playlist.id,
+        playlistTitle: playlist.title,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.qr_id) {
+      throw new Error(data.error || "Failed to create QR code.");
+    }
+
+    // Notify caller with QR data
+    if (onQRReady) {
+      onQRReady({
+        qr_id: data.qr_id,
+        image_url: data.image_url,
+        close_by: data.close_by,
+        amount: data.amount,
+      });
+    }
+
+    // Step 2: Start polling for payment status every 4 seconds
+    startQRPolling({
+      qrId: data.qr_id,
+      closeBy: data.close_by,
+      onPaymentSuccess,
+      onExpired,
+      onError,
+    });
+  } catch (err) {
+    console.error("QR creation error:", err);
+    if (onError) onError(err.message);
+  }
+}
+
+/**
+ * Start polling the backend for QR payment status
+ */
+function startQRPolling({ qrId, closeBy, onPaymentSuccess, onExpired, onError }) {
+  // Clear any existing polling
+  stopQRPolling();
+
+  qrPollingInterval = setInterval(async () => {
+    try {
+      // Check if QR has expired
+      const now = Math.floor(Date.now() / 1000);
+      if (closeBy && now >= closeBy) {
+        stopQRPolling();
+        if (onExpired) onExpired();
+        return;
+      }
+
+      const res = await fetch("/api/check-qr-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qr_id: qrId }),
+      });
+
+      const data = await res.json();
+
+      if (data.paid) {
+        stopQRPolling();
+        if (onPaymentSuccess) {
+          onPaymentSuccess({
+            payment_id: data.payment_id,
+            qr_id: qrId,
+          });
+        }
+      } else if (data.close_reason && data.close_reason !== "paid") {
+        // QR was closed for a non-payment reason
+        stopQRPolling();
+        if (onExpired) onExpired();
+      }
+    } catch (err) {
+      console.error("QR polling error:", err);
+      // Don't stop polling on transient errors
+    }
+  }, 4000); // Poll every 4 seconds
+}
+
+/**
+ * Stops the QR payment polling interval
+ */
+export function stopQRPolling() {
+  if (qrPollingInterval) {
+    clearInterval(qrPollingInterval);
+    qrPollingInterval = null;
+  }
+}
+
+// ─── Download Link Generation ────────────────────────────────────────────────
+
+/**
+ * Generates expiring download URLs for a playlist
+ * @param {Object} options
+ * @param {string} options.playlistId - Playlist ID
+ * @param {string} [options.paymentId] - Razorpay payment ID (not required for free playlists)
+ * @returns {Promise<Array<{ trackId, title, downloadUrl, expiresAt }>>}
+ */
+export async function generateDownloadLinks({ playlistId, paymentId }) {
+  const body = { playlistId };
+  if (paymentId) body.payment_id = paymentId;
+
+  const res = await fetch("/api/generate-download", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.downloads) {
+    throw new Error(data.error || "Failed to generate download links.");
+  }
+
+  return data.downloads;
+}
+
+// ─── Standard Checkout Modal (Fallback) ──────────────────────────────────────
+
+/**
+ * Initiates Razorpay Standard Checkout (fallback for cards/netbanking)
+ * @param {Object} options
+ * @param {Object} options.playlist - Playlist object
  * @param {Object} [options.customerInfo] - { name, email, phone }
  * @param {Function} options.onSuccess - Callback on verified payment
  * @param {Function} options.onError - Callback on payment or verification failure
  * @param {Function} [options.onDismiss] - Callback when user closes the modal
  */
 export async function initiateRazorpayCheckout({
+  playlist,
   track,
   customerInfo = {},
   onSuccess,
   onError,
   onDismiss,
 }) {
+  // Support both playlist and legacy track objects
+  const item = playlist || track;
+
   try {
     const isLoaded = await loadRazorpayScript();
     if (!isLoaded || !window.Razorpay) {
       throw new Error("Razorpay SDK could not be loaded. Please check your internet connection.");
     }
 
-    // Determine numeric amount in INR (default to 399 if priceInr is '₹399' or price is '$4.99')
+    // Determine numeric amount in INR
     let rawAmount = 399;
-    if (track.priceInr) {
-      const match = track.priceInr.match(/\d+/);
+    if (item.priceInr && item.priceInr !== "Free") {
+      const match = item.priceInr.match(/\d+/);
       if (match) rawAmount = parseInt(match[0], 10);
     }
 
@@ -57,10 +218,10 @@ export async function initiateRazorpayCheckout({
       body: JSON.stringify({
         amount: rawAmount,
         currency: "INR",
-        receipt: `pb_${track.id.substring(0, 10)}_${Date.now().toString().slice(-6)}`,
+        receipt: `pb_${item.id.substring(0, 10)}_${Date.now().toString().slice(-6)}`,
         notes: {
-          track_id: track.id,
-          track_title: track.title,
+          playlist_id: item.id,
+          playlist_title: item.title,
         },
       }),
     });
@@ -81,8 +242,8 @@ export async function initiateRazorpayCheckout({
       amount: orderData.amount,
       currency: orderData.currency || "INR",
       name: "Peculiar Beats",
-      description: `${track.title} - Lossless Master WAV + MP3`,
-      image: track.coverArt || "/images/logo.png",
+      description: `${item.title} - Lossless Master WAV + MP3`,
+      image: item.coverArt || "/images/logo.png",
       order_id: orderData.order_id,
       prefill: {
         name: customerInfo.name || "",
@@ -107,7 +268,7 @@ export async function initiateRazorpayCheckout({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              track_id: track.id,
+              playlist_id: item.id,
             }),
           });
 
@@ -120,7 +281,7 @@ export async function initiateRazorpayCheckout({
             onSuccess({
               orderId: response.razorpay_order_id,
               paymentId: response.razorpay_payment_id,
-              track,
+              playlist: item,
             });
           }
         } catch (verifyErr) {

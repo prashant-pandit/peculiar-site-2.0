@@ -33,6 +33,7 @@ export default function PersistentAudioPlayer() {
 
   const {
     currentTrack,
+    currentPlaylist,
     isPlaying,
     isLoading,
     currentTime,
@@ -41,7 +42,7 @@ export default function PersistentAudioPlayer() {
     volume,
     isMuted,
     previewLimitSeconds,
-    isTrackUnlocked,
+    isPlaylistUnlocked,
     togglePlay,
     pauseTrack,
     seek,
@@ -49,6 +50,7 @@ export default function PersistentAudioPlayer() {
     toggleMute,
     playNext,
     playPrev,
+    getCurrentTrackIndex,
     openPurchaseModal,
   } = useAudioPlayer();
 
@@ -67,7 +69,9 @@ export default function PersistentAudioPlayer() {
   // Only render on the /releases page
   if (!isReleasesPage || !currentTrack) return null;
 
-  const isUnlocked = isTrackUnlocked(currentTrack.id);
+  const isUnlocked = currentPlaylist ? isPlaylistUnlocked(currentPlaylist.id) : false;
+  const trackIndex = getCurrentTrackIndex();
+  const totalTracks = currentPlaylist?.tracks?.length || 0;
 
   const handleProgressBarClick = (e) => {
     if (!progressBarRef.current) return;
@@ -94,17 +98,9 @@ export default function PersistentAudioPlayer() {
     !isUnlocked && effectiveDuration > 0 && hoverPosition * effectiveDuration > previewLimitSeconds;
 
   const handleDownloadMaster = () => {
-    const downloadLink = currentTrack.downloadUrl || currentTrack.fullAudioUrl || currentTrack.previewUrl;
-    if (downloadLink && downloadLink.startsWith("http")) {
-      const a = document.createElement("a");
-      a.href = downloadLink;
-      a.download = `${currentTrack.id}-master.mp3`;
-      a.target = "_blank";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
-      alert(`Downloading Lossless 24-bit WAV Master for "${currentTrack.title}"!`);
+    // Open purchase modal on success step to show download links
+    if (currentPlaylist) {
+      openPurchaseModal(currentPlaylist, { showDownloads: true });
     }
   };
 
@@ -175,7 +171,7 @@ export default function PersistentAudioPlayer() {
           <div className="flex items-center gap-3 min-w-0 flex-1 md:flex-initial md:w-80">
             <div className="relative h-12 w-12 md:h-14 md:w-14 rounded-lg overflow-hidden flex-shrink-0 border border-outline-variant/30 group">
               <img
-                src={currentTrack.coverArt}
+                src={currentPlaylist?.coverArt || currentTrack.coverArt}
                 alt={currentTrack.title}
                 className="h-full w-full object-cover"
               />
@@ -196,7 +192,7 @@ export default function PersistentAudioPlayer() {
                     <CheckCircle size={10} /> Unlocked
                   </span>
                 ) : (
-                  currentTrack.isExclusive && (
+                  currentPlaylist?.isExclusive && (
                     <span className="hidden sm:inline-block text-[9px] font-bold uppercase tracking-wider bg-primary/20 text-primary px-1.5 py-0.5 rounded border border-primary/30">
                       Exclusive
                     </span>
@@ -204,8 +200,13 @@ export default function PersistentAudioPlayer() {
                 )}
               </div>
               <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                <span className="truncate">{currentTrack.artist}</span>
-                <span className="text-[10px] font-mono text-primary/80 hidden sm:inline">
+                <span className="truncate">{currentPlaylist?.title || currentTrack.artist}</span>
+                {totalTracks > 1 && (
+                  <span className="text-[10px] font-mono text-primary/80 hidden sm:inline">
+                    • Track {trackIndex}/{totalTracks}
+                  </span>
+                )}
+                <span className="text-[10px] font-mono text-on-surface-variant/80 hidden sm:inline">
                   • {currentTrack.bpm} BPM
                 </span>
                 <span className="text-[10px] font-mono text-on-surface-variant/80 hidden lg:inline">
@@ -308,12 +309,12 @@ export default function PersistentAudioPlayer() {
               </button>
             ) : (
               <button
-                onClick={() => openPurchaseModal(currentTrack)}
+                onClick={() => openPurchaseModal(currentPlaylist)}
                 className="flex items-center gap-1.5 md:gap-2 rounded-xl bg-gradient-to-r from-primary to-[#ff00bf] px-3.5 py-2.5 md:px-5 md:py-2.5 font-syne text-xs md:text-sm font-bold text-black transition-all hover:scale-105 active:scale-95 hover:brightness-110"
               >
                 <Download size={15} />
-                <span className="hidden xs:inline">Get Track</span>
-                <span>({currentTrack.priceInr || currentTrack.price})</span>
+                <span className="hidden xs:inline">Get Playlist</span>
+                <span>({currentPlaylist?.priceInr || "₹399"})</span>
               </button>
             )}
 
