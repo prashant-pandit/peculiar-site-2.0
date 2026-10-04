@@ -1,0 +1,9 @@
+export { default as WeddingsPage } from "./WeddingsPage";
+export { default as WeddingsHero } from "./WeddingsHero";
+export { default as WeddingStats } from "./WeddingStats";
+export { default as WeddingGallery } from "./WeddingGallery";
+export { default as WeddingVideos } from "./WeddingVideos";
+export { default as WeddingCities } from "./WeddingCities";
+export { default as WeddingVenues } from "./WeddingVenues";
+export { default as WeddingPartners } from "./WeddingPartners";
+export { default as WeddingCTA } from "./WeddingCTA";

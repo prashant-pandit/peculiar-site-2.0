@@ -1,5 +1,5 @@
 import React from "react";
-import { useAmbientTheme } from "../hooks";
+import { useAmbientTheme, useRouter } from "../hooks";
 import { Footer, Header } from "./layout";
 import {
   BookingSection,
@@ -12,9 +12,15 @@ import {
   StatsSection,
 } from "./sections";
 import { WaveformDivider } from "./ui";
+import { WeddingsPage } from "./weddings";
 
 export default function App() {
+  const { isWeddings } = useRouter();
   const ambientTheme = useAmbientTheme();
+
+  if (isWeddings) {
+    return <WeddingsPage />;
+  }
 
   return (
     <>
