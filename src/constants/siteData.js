@@ -102,6 +102,7 @@ export const navLinks = [
   ["Media", "#media"],
   ["Releases", "#releases"],
   ["Experience", "#experience"],
+  ["Wedding", "/weddings"],
   ["Bookings", "#booking"],
   ["Quick Links", "#footer"],
 ];
