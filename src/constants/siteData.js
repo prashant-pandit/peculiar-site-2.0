@@ -30,8 +30,8 @@ export const images = {
 };
 
 export const stats = [
-  { value: "600+", label: "Events Performed", icon: Disc3 },
-  { value: "20+", label: "Cities Toured", icon: Radio },
+  { value: "1000+", label: "Events Performed", icon: Disc3 },
+  { value: "50+", label: "Cities Toured", icon: Radio },
   { value: "100+", label: "Unique Venues", icon: Building2 },
   { value: "10+", label: "Genre Versatility", icon: Music2 },
 ];
