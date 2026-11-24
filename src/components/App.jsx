@@ -7,6 +7,7 @@ import {
   HeroSection,
   IntroSection,
   MediaSection,
+  MusicSection,
   PartnersSection,
   ReleasesSection,
   StatsSection,
@@ -27,6 +28,7 @@ export default function App() {
         <IntroSection />
         <MediaSection />
         <ReleasesSection />
+        <MusicSection />
         <WaveformDivider />
         <ExperiencesSection />
         <BookingSection />

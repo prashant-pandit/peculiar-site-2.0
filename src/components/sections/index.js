@@ -6,3 +6,4 @@ export { default as MediaSection } from "./MediaSection";
 export { default as PartnersSection } from "./PartnersSection";
 export { default as ReleasesSection } from "./ReleasesSection";
 export { default as StatsSection } from "./StatsSection";
+export { default as MusicSection } from "./MusicSection";
